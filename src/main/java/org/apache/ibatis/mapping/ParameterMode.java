@@ -16,8 +16,16 @@
 package org.apache.ibatis.mapping;
 
 /**
+ * 存储过程中用到的 —— 参数模式（给SP用）
+ *
  * @author Clinton Begin
  */
 public enum ParameterMode {
-  IN, OUT, INOUT
+
+  // 存储过程里面，写的参数值，可以通过IN和OUT来表示是输入的参数，还是输出的结果
+
+  IN,
+  OUT,
+  INOUT
+
 }

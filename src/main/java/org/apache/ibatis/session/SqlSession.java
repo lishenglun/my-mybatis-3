@@ -147,9 +147,12 @@ public interface SqlSession extends Closeable {
   /**
    * Retrieve a single row mapped from the statement key and parameter
    * using a {@code ResultHandler}.
-   * @param statement Unique identifier matching the statement to use.
-   * @param parameter A parameter object to pass to the statement.
-   * @param handler ResultHandler that will handle each retrieved row
+   * @param statement Unique identifier matching the statement to use. —— 与要使用的语句匹配的唯一标识符。
+   *                  sql语句唯一标识
+   * @param parameter A parameter object to pass to the statement. —— 要传递给语句的参数对象。
+   *                  sql语句参数值
+   * @param handler ResultHandler that will handle each retrieved row —— ResultHandler将处理每个检索到的行
+   *                传入方法中的ResultHandler对象
    */
   void select(String statement, Object parameter, ResultHandler handler);
 

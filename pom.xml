@@ -16,14 +16,15 @@
        limitations under the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.mybatis</groupId>
     <artifactId>mybatis-parent</artifactId>
     <version>34</version>
-    <relativePath />
+    <relativePath>../parent-mybatis-parent-34/pom.xml</relativePath>
   </parent>
 
   <artifactId>mybatis</artifactId>
@@ -143,6 +144,32 @@
   </properties>
 
   <dependencies>
+    <!-- 日志坐标-->
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.12</version>
+    </dependency>
+    <!-- 解析 xml 的 dom4j -->
+    <dependency>
+      <groupId>dom4j</groupId>
+      <artifactId>dom4j</artifactId>
+      <version>1.6.1</version>
+    </dependency>
+    <!-- dom4j的依赖包jaxen -->
+    <dependency>
+      <groupId>jaxen</groupId>
+      <artifactId>jaxen</artifactId>
+      <version>1.1.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.12</version>
+    </dependency>
+
+    <!--   以上是自己导入的  -->
+
     <dependency>
       <groupId>ognl</groupId>
       <artifactId>ognl</artifactId>
@@ -242,7 +269,8 @@
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
       <version>8.0.30</version>
-      <scope>test</scope>
+      <!--      <scope>test</scope>-->
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.assertj</groupId>
@@ -293,6 +321,74 @@
       <version>2.18.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+      <!-- <scope>compile</scope>  -->
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.18.0</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <!--  分页插件  -->
+<!--    <dependency>-->
+<!--      <groupId>com.github.pagehelper</groupId>-->
+<!--      <artifactId>pagehelper</artifactId>-->
+<!--      <version>3.7.5</version>-->
+<!--    </dependency>-->
+
+    <!--  整合spring引入的包  start ...  -->
+    <!--  mybatis-spring整合包 【重点】  -->
+<!--    <dependency>-->
+<!--      <groupId>org.mybatis</groupId>-->
+<!--      <artifactId>mybatis-spring</artifactId>-->
+<!--      <version>2.0.7</version>-->
+<!--    </dependency>-->
+    <!--  spring  -->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework</groupId>-->
+<!--      <artifactId>spring-context</artifactId>-->
+<!--      <version>5.1.6.RELEASE</version>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework</groupId>-->
+<!--      <artifactId>spring-orm</artifactId>-->
+<!--      <version>5.1.6.RELEASE</version>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.springframework</groupId>-->
+<!--      <artifactId>spring-test</artifactId>-->
+<!--      <version>5.1.6.RELEASE</version>-->
+<!--    </dependency>-->
+    <!--    <dependency>-->
+    <!--      <groupId>com.alibaba</groupId>-->
+    <!--      <artifactId>druid</artifactId>-->
+    <!--      <version>1.1.14</version>-->
+    <!--    </dependency>-->
+<!--  上看有，所以注释  -->
+    <!--    <dependency>-->
+    <!--      <groupId>junit</groupId>-->
+    <!--      <artifactId>junit</artifactId>-->
+    <!--      <version>4.12</version>-->
+    <!--    </dependency>-->
+
+    <!--  Spring-JDBC数据源依赖（暂时不用这个，所以注释）  -->
+    <!--    <dependency>-->
+    <!--      <groupId>org.springframework</groupId>-->
+    <!--      <artifactId>spring-jdbc</artifactId>-->
+    <!--      <version>5.3.22</version>-->
+    <!--    </dependency>-->
+    <!--  aspectJ AOP 织入器（暂时不用这个，所以注释     -->
+    <!--    <dependency>-->
+    <!--      <groupId>org.aspectj</groupId>-->
+    <!--      <artifactId>aspectjweaver</artifactId>-->
+    <!--      <version>1.8.14</version>-->
+    <!--    </dependency>-->
+    <!--  整合spring引入的包  end ...  -->
   </dependencies>
 
   <build>
@@ -401,7 +497,26 @@
           <exclude>**/*.java</exclude>
         </excludes>
       </resource>
+
+      <!--在build中配置resources，来防止我们资源导出失败的问题-->
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*.properties</include>
+          <include>**/*.xml</include>
+        </includes>
+        <filtering>true</filtering>
+      </resource>
+      <resource>
+        <directory>src/main/java</directory>
+        <includes>
+          <include>**/*.properties</include>
+          <include>**/*.xml</include>
+        </includes>
+        <filtering>true</filtering>
+      </resource>
     </resources>
+
     <testResources>
       <testResource>
         <directory>${project.build.testSourceDirectory}</directory>
@@ -422,7 +537,7 @@
         </property>
       </activation>
       <properties>
-        <excludedGroups />
+        <excludedGroups/>
       </properties>
     </profile>
     <profile>

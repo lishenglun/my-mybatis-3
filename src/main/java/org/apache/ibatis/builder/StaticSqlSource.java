@@ -23,12 +23,17 @@ import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * 静态sql语句
+ *
  * @author Clinton Begin
  */
 public class StaticSqlSource implements SqlSource {
 
+  // sql语句
   private final String sql;
+  // sql参数映射
   private final List<ParameterMapping> parameterMappings;
+  // mybatis配置
   private final Configuration configuration;
 
   public StaticSqlSource(Configuration configuration, String sql) {
@@ -43,6 +48,7 @@ public class StaticSqlSource implements SqlSource {
 
   @Override
   public BoundSql getBoundSql(Object parameterObject) {
+    // 只是创建BoundSql对象，包装一些变量，里面并没有把实参填充到sql语句里面去！
     return new BoundSql(configuration, sql, parameterMappings, parameterObject);
   }
 

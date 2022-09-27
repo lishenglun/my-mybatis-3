@@ -233,7 +233,7 @@ public class DefaultVFS extends VFS {
           log.debug("Inner URL: " + url);
         }
       } catch (MalformedURLException e) {
-        // This will happen at some point and serves as a break in the loop
+        // This will happen at some point and serves as a break in the loop —— 这将在某个时候发生并作为循环中的一个中断
         continueLoop = false;
       }
     }

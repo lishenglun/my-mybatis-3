@@ -16,7 +16,7 @@
 package org.apache.ibatis.builder;
 
 /**
- * Interface that indicate to provide an initialization method.
+ * Interface that indicate to provide an initialization method. —— 指示提供初始化方法的接口
  *
  * @since 3.4.2
  * @author Kazuki Shimizu

@@ -36,6 +36,8 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
+ * 批量处理的执行器
+ *
  * @author Jeff Butler
  */
 public class BatchExecutor extends BaseExecutor {
@@ -112,9 +114,11 @@ public class BatchExecutor extends BaseExecutor {
   public List<BatchResult> doFlushStatements(boolean isRollback) throws SQLException {
     try {
       List<BatchResult> results = new ArrayList<>();
+
       if (isRollback) {
         return Collections.emptyList();
       }
+
       for (int i = 0, n = statementList.size(); i < n; i++) {
         Statement stmt = statementList.get(i);
         applyTransactionTimeout(stmt);

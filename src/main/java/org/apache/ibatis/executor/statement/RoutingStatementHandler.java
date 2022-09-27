@@ -30,14 +30,39 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
 /**
+ * 路由选择语句处理器，有点像代理模式
+ *
  * @author Clinton Begin
  */
 public class RoutingStatementHandler implements StatementHandler {
 
+  // 底层封装的真正的StatementHandler对象
   private final StatementHandler delegate;
 
+  /**
+   * 创建RoutingStatementHandler，里面：根据MappedStatement中配置的StatementType（默认是PreparedStatementHandler），创建对应的StatementHandler。
+   * 在StatementHandler的构造器里面，最主要干了3件事：
+   * （1）获取主键
+   * （2）创建ParameterHandler（参数处理器），⚠️并应用插件对其进行扩展
+   * （3）创建ResultSetHandler（结果集处理器），⚠️并应用插件对其进行扩展
+   *
+   * @param executor
+   * @param ms
+   * @param parameter
+   * @param rowBounds
+   * @param resultHandler
+   * @param boundSql
+   */
   public RoutingStatementHandler(Executor executor, MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
+    /*
 
+    1、根据MappedStatement中配置的StatementType（默认是PreparedStatementHandler），创建对应的StatementHandler。
+    在StatementHandler的构造器里面，最主要干了3件事：
+    （1）获取主键
+    （2）创建ParameterHandler（参数处理器），⚠️并应用插件对其进行扩展
+    （3）创建ResultSetHandler（结果集处理器），⚠️并应用插件对其进行扩展
+
+     */
     switch (ms.getStatementType()) {
       case STATEMENT:
         delegate = new SimpleStatementHandler(executor, ms, parameter, rowBounds, resultHandler, boundSql);
@@ -54,10 +79,16 @@ public class RoutingStatementHandler implements StatementHandler {
 
   }
 
+  /**
+   * 1、创建执行sql语句的对象：Statement
+   * 2、往statement里面，设置超时时间
+   * 3、往statement里面，设置读取条数
+   */
   @Override
   public Statement prepare(Connection connection, Integer transactionTimeout) throws SQLException {
     return delegate.prepare(connection, transactionTimeout);
   }
+
 
   @Override
   public void parameterize(Statement statement) throws SQLException {
@@ -93,4 +124,5 @@ public class RoutingStatementHandler implements StatementHandler {
   public ParameterHandler getParameterHandler() {
     return delegate.getParameterHandler();
   }
+
 }

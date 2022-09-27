@@ -28,6 +28,13 @@ import org.apache.ibatis.builder.BuilderException;
  */
 public class ExpressionEvaluator {
 
+  /**
+   * 用参数对象，判断，表达式是否成立
+   *
+   * @param expression            表达式，例如：<if test="#{id}!=null">中的"#{id}!=null"
+   * @param parameterObject       参数对象
+   * @return
+   */
   public boolean evaluateBoolean(String expression, Object parameterObject) {
     Object value = OgnlCache.getValue(expression, parameterObject);
     if (value instanceof Boolean) {

@@ -66,9 +66,17 @@ public class ResultLoader {
     this.creatorThreadId = Thread.currentThread().getId();
   }
 
+  /**
+   * 发起查询和获取结果
+   */
   public Object loadResult() throws SQLException {
+    /* 查询结果 */
     List<Object> list = selectList();
-    resultObject = resultExtractor.extractObjectFromList(list, targetType);
+
+    /* 从查询到的结果列表中，提取对象 */
+    resultObject = resultExtractor.extractObjectFromList/* 从列表中提取对象 */(list, targetType);
+
+    /* 返回查询到的结果 */
     return resultObject;
   }
 
@@ -77,6 +85,7 @@ public class ResultLoader {
     if (Thread.currentThread().getId() != this.creatorThreadId || localExecutor.isClosed()) {
       localExecutor = newExecutor();
     }
+
     try {
       return localExecutor.query(mappedStatement, parameterObject, RowBounds.DEFAULT, Executor.NO_RESULT_HANDLER, cacheKey, boundSql);
     } finally {

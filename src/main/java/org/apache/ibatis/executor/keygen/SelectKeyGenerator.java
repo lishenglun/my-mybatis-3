@@ -34,6 +34,7 @@ public class SelectKeyGenerator implements KeyGenerator {
 
   public static final String SELECT_KEY_SUFFIX = "!selectKey";
   private final boolean executeBefore;
+  // ⚠️里面存入了sql语句
   private final MappedStatement keyStatement;
 
   public SelectKeyGenerator(MappedStatement keyStatement, boolean executeBefore) {

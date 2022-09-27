@@ -22,9 +22,12 @@ import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.ResultMapping;
 
 /**
+ * 结果映射解析器
+ *
  * @author Eduardo Macarron
  */
 public class ResultMapResolver {
+
   private final MapperBuilderAssistant assistant;
   private final String id;
   private final Class<?> type;
@@ -43,7 +46,11 @@ public class ResultMapResolver {
     this.autoMapping = autoMapping;
   }
 
+  /**
+   * 构建ResultMap对象，并添加ResultMap(结果映射)到configuration.resultMaps中
+   */
   public ResultMap resolve() {
+    // 构建ResultMap对象，并添加ResultMap(结果映射)到configuration.resultMaps中
     return assistant.addResultMap(this.id, this.type, this.extend, this.discriminator, this.resultMappings, this.autoMapping);
   }
 

@@ -29,8 +29,10 @@ public class ParameterMapping {
 
   private Configuration configuration;
 
+  // 表达式名称
   private String property;
   private ParameterMode mode;
+  // 表达式对应的java类型
   private Class<?> javaType = Object.class;
   private JdbcType jdbcType;
   private Integer numericScale;
@@ -100,8 +102,11 @@ public class ParameterMapping {
     }
 
     public ParameterMapping build() {
+      // 解析获取当前参数类型对应的TypeHandler
       resolveTypeHandler();
+
       validate();
+
       return parameterMapping;
     }
 
@@ -121,10 +126,15 @@ public class ParameterMapping {
       }
     }
 
+    /**
+     * 解析获取当前参数类型对应的TypeHandler
+     */
     private void resolveTypeHandler() {
+       // typeHandler=nll && javaType!=null
       if (parameterMapping.typeHandler == null && parameterMapping.javaType != null) {
         Configuration configuration = parameterMapping.configuration;
         TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
+        // ⚠️从"java类型集合"中，获取java类型所对应的"jdbc类型集合"；然后从"jdbc类型集合"中，获取jdbc类型所对应的TypeHandler
         parameterMapping.typeHandler = typeHandlerRegistry.getTypeHandler(parameterMapping.javaType, parameterMapping.jdbcType);
       }
     }

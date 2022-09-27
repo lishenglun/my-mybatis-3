@@ -17,3 +17,10 @@
  * Base package for handling parameters.
  */
 package org.apache.ibatis.executor.parameter;
+
+
+/**
+ *
+ * 解析参数
+ *
+ */

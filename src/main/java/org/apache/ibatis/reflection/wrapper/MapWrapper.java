@@ -25,10 +25,15 @@ import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
 /**
+ * Map包装器。
+ *
+ * 对于Map对象的加工
+ *
  * @author Clinton Begin
  */
 public class MapWrapper extends BaseWrapper {
 
+  // 原来的对象
   private final Map<String, Object> map;
 
   public MapWrapper(MetaObject metaObject, Map<String, Object> map) {
@@ -38,6 +43,7 @@ public class MapWrapper extends BaseWrapper {
 
   @Override
   public Object get(PropertyTokenizer prop) {
+    // 如果有index,说明是集合，那就要分解集合,调用的是BaseWrapper.resolveCollection()和getCollectionValue()
     if (prop.getIndex() != null) {
       Object collection = resolveCollection(prop, map);
       return getCollectionValue(prop, collection);

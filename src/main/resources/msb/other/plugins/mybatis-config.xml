@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+  <properties resource="msb/mybatis_02/db.properties"/>
+
+  <settings>
+    <setting name="mapUnderscoreToCamelCase" value="true"/>
+    <!-- 开启延迟加载的支持 -->
+    <setting name="lazyLoadingEnabled" value="true"/>
+    <setting name="aggressiveLazyLoading" value="false"/>
+    <!-- 开启二级缓存的支持（默认开启，所以这里可以不用配置） -->
+    <!--  ⚠️还要去mapper文件中加上<cache>标签，才会为对应的mapper加上二级缓存  -->
+    <setting name="cacheEnabled" value="true"/>
+  </settings>
+
+  <plugins>
+    <plugin interceptor="com.msb.other.plugins.plugin.ExamplePlugin">
+      <property name="someProperty" value="100"/>
+    </plugin>
+    <!--    <plugin interceptor="com.msb.other.plugins.plugin.ExamplePlugin2">-->
+    <!--      <property name="someProperty" value="102"/>-->
+    <!--    </plugin>-->
+    <!--    <plugin interceptor="com.msb.other.plugins.plugin.ExamplePlugin3">-->
+    <!--      <property name="someProperty" value="102"/>-->
+    <!--    </plugin>-->
+  </plugins>
+
+  <environments default="development">
+    <environment id="development">
+      <transactionManager type="JDBC"/>
+      <dataSource type="POOLED">
+        <property name="driver" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+      </dataSource>
+    </environment>
+  </environments>
+
+  <mappers>
+    <package name="com.msb.other.plugins.dao"/>
+  </mappers>
+
+</configuration>

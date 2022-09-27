@@ -16,16 +16,21 @@
 package org.apache.ibatis.session;
 
 /**
+ * 结果值上下文，存储结果值、总数等
+ *
  * @author Clinton Begin
  */
 public interface ResultContext<T> {
 
+  // 获取结果
   T getResultObject();
 
+  // 获取记录数
   int getResultCount();
 
   boolean isStopped();
 
+  //停止?
   void stop();
 
 }

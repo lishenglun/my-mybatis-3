@@ -38,12 +38,27 @@ public class XMLLanguageDriver implements LanguageDriver {
     return new DefaultParameterHandler(mappedStatement, parameterObject, boundSql);
   }
 
+  /**
+   * 解析<insert>、<update>、<delete>、<select>、<selectKey>等标签，提取里面的sql语句，构建成SqlSource
+   *
+   * @param configuration The MyBatis configuration
+   * @param script XNode parsed from a XML file
+   * @param parameterType input parameter type got from a mapper method or specified in the parameterType xml attribute. Can be null.
+   * @return
+   */
   @Override
   public SqlSource createSqlSource(Configuration configuration, XNode script, Class<?> parameterType) {
     XMLScriptBuilder builder = new XMLScriptBuilder(configuration, script, parameterType);
     return builder.parseScriptNode();
   }
 
+  /**
+   *
+   * @param configuration The MyBatis configuration
+   * @param script The content of the annotation
+   * @param parameterType 方法参数
+   * @return
+   */
   @Override
   public SqlSource createSqlSource(Configuration configuration, String script, Class<?> parameterType) {
     // issue #3
@@ -57,6 +72,7 @@ public class XMLLanguageDriver implements LanguageDriver {
       if (textSqlNode.isDynamic()) {
         return new DynamicSqlSource(configuration, textSqlNode);
       } else {
+        // ⚠️解析sql
         return new RawSqlSource(configuration, script, parameterType);
       }
     }

@@ -17,3 +17,10 @@
  * Contains the statement executors.
  */
 package org.apache.ibatis.executor;
+
+
+/**
+ *
+ * 在整个mybatis执行sql的过程中，它所有包含的主要核心类，都在executor包里面，只不过涉及到不同的调用方式而已
+ *
+ */

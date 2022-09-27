@@ -27,14 +27,20 @@ import org.apache.ibatis.reflection.invoker.Invoker;
 import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
 /**
+ * Bean包装器。
+ *
+ * 对于一些实体Bean进行的加工
+ *
  * @author Clinton Begin
  */
 public class BeanWrapper extends BaseWrapper {
 
+  // 当前对象（有可能是非代理对象，也有可能是代理对象）
   private final Object object;
+  // 元类（有可能是非代理对象的metaClass，也有可能是代理对象的metaClass，取决于当前对象是非代理对象还是代理对象）
   private final MetaClass metaClass;
 
-  public BeanWrapper(MetaObject metaObject, Object object) {
+  public BeanWrapper(MetaObject metaObject, Object object/* 当前对象（有可能是非代理对象，或者是代理对象） */) {
     super(metaObject);
     this.object = object;
     this.metaClass = MetaClass.forClass(object.getClass(), metaObject.getReflectorFactory());
@@ -42,6 +48,7 @@ public class BeanWrapper extends BaseWrapper {
 
   @Override
   public Object get(PropertyTokenizer prop) {
+    // 如果有index(有中括号),说明是集合，那就要解析集合,调用的是BaseWrapper.resolveCollection 和 getCollectionValue
     if (prop.getIndex() != null) {
       Object collection = resolveCollection(prop, object);
       return getCollectionValue(prop, collection);
@@ -52,10 +59,12 @@ public class BeanWrapper extends BaseWrapper {
 
   @Override
   public void set(PropertyTokenizer prop, Object value) {
+    // 如果有index,说明是集合，那就要解析集合,调用的是BaseWrapper.resolveCollection 和 setCollectionValue
     if (prop.getIndex() != null) {
       Object collection = resolveCollection(prop, object);
       setCollectionValue(prop, collection, value);
     } else {
+      // ⚠️否则，setBeanProperty
       setBeanProperty(prop, object, value);
     }
   }
@@ -172,12 +181,14 @@ public class BeanWrapper extends BaseWrapper {
     }
   }
 
-  private void setBeanProperty(PropertyTokenizer prop, Object object, Object value) {
+  private void setBeanProperty(PropertyTokenizer prop/* 属性名 */, Object object/* 结果对象（有可能是代理，也有可能不是代理） */, Object value/* 属性值 */) {
     try {
+      // ⚠️根据属性名，获取当前对象中对应的setter方法（如果是代理对象，就是代理对象中对应的属性名方法；如果是非代理对象，那么就是非代理对象中的属性名方法）
       Invoker method = metaClass.getSetInvoker(prop.getName());
       Object[] params = {value};
       try {
-        method.invoke(object, params);
+        // ⚠️
+        method.invoke(object/* 结果对象（有可能是代理，也有可能不是代理） */, params/* 参数值 */);
       } catch (Throwable t) {
         throw ExceptionUtil.unwrapThrowable(t);
       }

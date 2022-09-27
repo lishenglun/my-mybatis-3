@@ -47,6 +47,7 @@ import org.apache.ibatis.cache.impl.PerpetualCache;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
+// 只能修饰在类上
 @Target(ElementType.TYPE)
 public @interface CacheNamespace {
 

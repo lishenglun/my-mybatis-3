@@ -25,12 +25,25 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
- * Offline entity resolver for the MyBatis DTDs.
+ * MyBatis DTD的离线实体解析器
+ * <p>
+ * 配置文件的格式定义信息（也就是，校验mybatis配置文件中标签格式是否正确的）
+ * <p>
+ * 目的是未联网的情况下也能做DTD验证，实现原理就是将DTD搞到本地，然后用org.xml.sax.EntityResolver，最后调用DocumentBuilder.setEntityResolver()来达到脱机验证
+ * EntityResolver
+ * public InputSource resolveEntity (String publicId, String systemId)
+ * 应用程序可以使用此接口将系统标识符重定向到本地 URI
+ * 题外：但是用DTD是比较过时的做法，新的都改用xsd了
+ * 题外：这个类的名字并不准确，因为它被两个类都用到了（XMLConfigBuilder,XMLMapperBuilder）
+ * <p>
+ * Offline entity resolver for the MyBatis DTDs. —— MyBatis DTD的离线实体解析器
  *
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
 public class XMLMapperEntityResolver implements EntityResolver {
+
+  // 题外：xml配置文件，是有文件定义信息的，也就是验证我们写的xml配置文件内容的规范
 
   private static final String IBATIS_CONFIG_SYSTEM = "ibatis-3-config.dtd";
   private static final String IBATIS_MAPPER_SYSTEM = "ibatis-3-mapper.dtd";
@@ -43,19 +56,17 @@ public class XMLMapperEntityResolver implements EntityResolver {
   /**
    * Converts a public DTD into a local one.
    *
-   * @param publicId
-   *          The public id that is what comes after "PUBLIC"
-   * @param systemId
-   *          The system id that is what comes after the public id.
+   * @param publicId The public id that is what comes after "PUBLIC"
+   * @param systemId The system id that is what comes after the public id.
    * @return The InputSource for the DTD
-   *
-   * @throws org.xml.sax.SAXException
-   *           If anything goes wrong
+   * @throws org.xml.sax.SAXException If anything goes wrong
    */
+  // 核心就是覆盖这个方法，达到转public DTD到本地DTD的目的
   @Override
   public InputSource resolveEntity(String publicId, String systemId) throws SAXException {
     try {
       if (systemId != null) {
+        // 先找publicId，找不到再找systemId，貌似不可能找不到的说
         String lowerCaseSystemId = systemId.toLowerCase(Locale.ENGLISH);
         if (lowerCaseSystemId.contains(MYBATIS_CONFIG_SYSTEM) || lowerCaseSystemId.contains(IBATIS_CONFIG_SYSTEM)) {
           return getInputSource(MYBATIS_CONFIG_DTD, publicId, systemId);

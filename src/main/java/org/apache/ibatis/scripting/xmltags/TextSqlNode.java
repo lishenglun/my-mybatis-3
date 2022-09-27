@@ -26,7 +26,17 @@ import org.apache.ibatis.type.SimpleTypeRegistry;
  * @author Clinton Begin
  */
 public class TextSqlNode implements SqlNode {
+
+  /**
+   * 也就是获取标签内的sql语句，例如：
+   * <selectKey keyProperty="id" resultType="int" order="BEFORE">
+   *     select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
+   * </selectKey>
+   * 得到的就是：select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
+   */
+  // 标签内的sql语句
   private final String text;
+
   private final Pattern injectionFilter;
 
   public TextSqlNode(String text) {
@@ -40,8 +50,10 @@ public class TextSqlNode implements SqlNode {
 
   public boolean isDynamic() {
     DynamicCheckerTokenParser checker = new DynamicCheckerTokenParser();
+
     GenericTokenParser parser = createParser(checker);
     parser.parse(text);
+
     return checker.isDynamic();
   }
 

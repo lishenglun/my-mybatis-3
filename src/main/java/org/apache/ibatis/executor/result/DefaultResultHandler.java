@@ -27,6 +27,7 @@ import org.apache.ibatis.session.ResultHandler;
  */
 public class DefaultResultHandler implements ResultHandler<Object> {
 
+  // 存储所有的行的结果对象
   private final List<Object> list;
 
   public DefaultResultHandler() {
@@ -40,7 +41,8 @@ public class DefaultResultHandler implements ResultHandler<Object> {
 
   @Override
   public void handleResult(ResultContext<?> context) {
-    list.add(context.getResultObject());
+    // 存储当前行的结果对象
+    list.add(context.getResultObject()/* 当前行的结果对象 */);
   }
 
   public List<Object> getResultList() {

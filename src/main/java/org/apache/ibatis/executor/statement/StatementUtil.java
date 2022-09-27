@@ -45,7 +45,7 @@ public class StatementUtil {
       return;
     }
     if (queryTimeout == null || queryTimeout == 0 || transactionTimeout < queryTimeout) {
-      statement.setQueryTimeout(transactionTimeout);
+      statement.setQueryTimeout/* 设置查询的超时时间 */(transactionTimeout);
     }
   }
 

@@ -18,12 +18,17 @@ package org.apache.ibatis.reflection.wrapper;
 import org.apache.ibatis.reflection.MetaObject;
 
 /**
+ * 对象包装器工厂
+ *
  * @author Clinton Begin
  */
 public interface ObjectWrapperFactory {
 
+  // 有没有包装器
+  // 题外：有没有包装器的另一层意思是：对象是否需要加工
   boolean hasWrapperFor(Object object);
 
+  // 获取包装器
   ObjectWrapper getWrapperFor(MetaObject metaObject, Object object);
 
 }

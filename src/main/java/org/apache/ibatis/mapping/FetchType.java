@@ -19,5 +19,10 @@ package org.apache.ibatis.mapping;
  * @author Eduardo Macarron
  */
 public enum FetchType {
-  LAZY, EAGER, DEFAULT
+  // 懒加载
+  LAZY,
+  // 非懒加载
+  EAGER,
+  // 默认
+  DEFAULT
 }

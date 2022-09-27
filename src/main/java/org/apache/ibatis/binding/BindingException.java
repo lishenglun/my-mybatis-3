@@ -18,6 +18,11 @@ package org.apache.ibatis.binding;
 import org.apache.ibatis.exceptions.PersistenceException;
 
 /**
+ * 绑定异常：（自定义的异常处理器）
+ * 当map中查不到对应的key时，抛出此异常，
+ * 当重复添加映射时，也抛出此异常
+ * 当绑定mapper中某个方法出错时，也抛出此异常
+ *
  * @author Clinton Begin
  */
 public class BindingException extends PersistenceException {

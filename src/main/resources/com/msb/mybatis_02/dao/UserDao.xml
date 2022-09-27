@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msb.mybatis_02.dao.UserDao">
+
+  <!-- 缓存类型、缓存大小、回收策略 -->
+  <!--  <cache type="PerpetualCache"-->
+  <!--         eviction="FIFO"-->
+  <!--         flushInterval="60000"-->
+  <!--         size="512"-->
+  <!--         readOnly="true"-->
+  <!--         blocking="true" >-->
+  <!--    <property name="name" value="zhangsan"/>-->
+  <!--  </cache>-->
+
+  <cache/>
+
+  <sql id="userColumns" databaseId="">
+    id
+    ,username,password
+  </sql>
+
+  <resultMap id="userMap" type="com.msb.mybatis_02.bean.User">
+    <id column="id" property="id"/>
+    <result column="name" property="name"/>
+    <result column="age" property="age"/>
+    <result column="username" property="username"/>
+    <result column="password" property="password"/>
+    <result column="enable" property="enable"/>
+    <association property="role" javaType="com.msb.mybatis_02.bean.Role">
+      <id column="id" property="id"/>
+      <result column="user_id" property="userId"/>
+      <result column="name" property="name"/>
+      <result column="position" property="position"/>
+    </association>
+  </resultMap>
+
+  <resultMap id="getUserByUser2_userMap" type="com.msb.mybatis_02.bean.User">
+    <id column="id" property="id"/>
+    <result column="username" property="username"/>
+    <result column="password" property="password"/>
+    <result column="enable" property="enable"/>
+  </resultMap>
+
+  <insert id="insert">
+    <selectKey keyProperty="id" resultType="int" order="BEFORE">
+      select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
+    </selectKey>
+    INSERT INTO `user` (, `username`, `password`)
+    VALUES (#{username}, #{password});
+  </insert>
+
+  <select id="getAllUser" resultMap="userMap">
+    select *
+    from user
+  </select>
+
+  <!--  useCache="false"：可以在每个方法上，单独配置是否开启缓存（注意：针对每次查询都需要最新的数据sql，要设置成useCache=false，禁用二级缓存）  -->
+  <select id="getUserByUserResultType" resultType="com.msb.mybatis_02.bean.User">
+    select *
+    from user
+    <where>
+      <if test="#{id}!=null">
+        id = #{id}
+      </if>
+      <if test="#{username}!=null">
+        and username = #{username}
+      </if>
+    </where>
+  </select>
+
+  <select id="getUserByUserResultMap" resultMap="getUserByUser2_userMap">
+    select *
+    from user
+    <where>
+      <if test="#{id}!=null">
+        id = #{id}
+      </if>
+      <if test="#{username}!=null">
+        and username = #{username}
+      </if>
+    </where>
+  </select>
+
+  <resultMap id="userMapDiscriminator" type="com.msb.mybatis_02.bean.User">
+    <id column="id" property="id"/>
+    <result column="name" property="name"/>
+    <result column="age" property="age"/>
+    <result column="username" property="username"/>
+    <result column="password" property="password"/>
+    <result column="enable" property="enable"/>
+    <discriminator javaType="Integer" column="enable">
+      <!--   方式一   -->
+      <!--      <case value="1">-->
+              <!--
+               ofType 是返回值类型(集合元素)
+               column 是将当前查询到的id列作为com.msb.mybatis_02.dao.RoleDao.getRoleByUserId方法的入参
+              -->
+      <!--        <collection property="roleList" ofType="com.msb.mybatis_02.bean.Role"-->
+      <!--                    select="com.msb.mybatis_02.dao.RoleDao.getRoleByUserId" column="id">-->
+      <!--          <id column="id" property="id"/>-->
+      <!--          <result column="name" property="name"/>-->
+      <!--          <result column="user_id" property="userId"/>-->
+      <!--          <result column="position" property="position"/>-->
+      <!--        </collection>-->
+      <!--      </case>-->
+
+      <!--   方式二   -->
+      <case value="1" resultMap="roleMapCollection"/>
+    </discriminator>
+  </resultMap>
+
+  <resultMap id="roleMapCollection" type="com.msb.mybatis_02.bean.User">
+    <collection property="roleList"
+                select="com.msb.mybatis_02.dao.RoleDao.getRoleByUserId" column="id">
+    </collection>
+  </resultMap>
+
+  <select id="getUserById" parameterType="int" resultMap="userMapDiscriminator">
+    select *
+    from user
+    where id = #{id}
+  </select>
+
+
+</mapper>

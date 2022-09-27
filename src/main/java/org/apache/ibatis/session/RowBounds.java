@@ -16,6 +16,8 @@
 package org.apache.ibatis.session;
 
 /**
+ * 分页用，记录限制
+ *
  * @author Clinton Begin
  */
 public class RowBounds {
@@ -24,9 +26,11 @@ public class RowBounds {
   public static final int NO_ROW_LIMIT = Integer.MAX_VALUE;
   public static final RowBounds DEFAULT = new RowBounds();
 
+  // offset, limit就等于一般分页的start,limit
   private final int offset;
   private final int limit;
 
+  // 默认是一页Integer.MAX_VALUE条
   public RowBounds() {
     this.offset = NO_ROW_OFFSET;
     this.limit = NO_ROW_LIMIT;

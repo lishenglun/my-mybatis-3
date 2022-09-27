@@ -25,7 +25,26 @@ import org.apache.ibatis.session.Configuration;
  */
 public class Discriminator {
 
+  /**
+   * 例如：
+   *
+   * <discriminator javaType="String" column="sex">
+   *   <!-- 男性 -->
+   *   <case value="1" resultMap="HealthReportMaleResultMap"/>
+   *   <!-- 女性 -->
+   *   <case value="0" resultMap="HealthReportFemale"/>
+   * </discriminator>
+   *
+   * 其中：
+   *
+   * <discriminator javaType="String" column="sex">标签信息构成ResultMapping
+   * <case>标签信息构成discriminatorMap
+   *
+   * 题外：<discriminator>标签中只能定义<case>这一个标签！
+   */
+  // 鉴别器标签的信息
   private ResultMapping resultMapping;
+  // 鉴别器子标签的信息
   private Map<String, String> discriminatorMap;
 
   Discriminator() {
@@ -57,6 +76,12 @@ public class Discriminator {
     return discriminatorMap;
   }
 
+  /**
+   * 根据要鉴别的列的值，获取对应的resultMapId
+   *
+   * @param s
+   * @return
+   */
   public String getMapIdFor(String s) {
     return discriminatorMap.get(s);
   }

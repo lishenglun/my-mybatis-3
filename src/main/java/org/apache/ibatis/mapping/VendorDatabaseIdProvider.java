@@ -39,6 +39,14 @@ import org.apache.ibatis.logging.LogFactory;
  */
 public class VendorDatabaseIdProvider implements DatabaseIdProvider {
 
+  /**
+   * 参考：
+   * <databaseIdProvider type="VENDOR">
+   *   <property name="SQL Server" value="sqlserver"/>
+   *   <property name="DB2" value="db2"/>
+   *   <property name="Oracle" value="oracle" />
+   * </databaseIdProvider>
+   */
   private Properties properties;
 
   @Override
@@ -47,6 +55,7 @@ public class VendorDatabaseIdProvider implements DatabaseIdProvider {
       throw new NullPointerException("dataSource cannot be null");
     }
     try {
+      // 获取数据库名称
       return getDatabaseName(dataSource);
     } catch (Exception e) {
       LogHolder.log.error("Could not get a databaseId from dataSource", e);
@@ -59,7 +68,11 @@ public class VendorDatabaseIdProvider implements DatabaseIdProvider {
     this.properties = p;
   }
 
+  /**
+   * 获取数据库名称
+   */
   private String getDatabaseName(DataSource dataSource) throws SQLException {
+    // 获取数据库产品名称
     String productName = getDatabaseProductName(dataSource);
     if (this.properties != null) {
       for (Map.Entry<Object, Object> property : properties.entrySet()) {
@@ -73,9 +86,15 @@ public class VendorDatabaseIdProvider implements DatabaseIdProvider {
     return productName;
   }
 
+  /**
+   * 获取数据库产品名称：与数据库建立连接，去数据库当中获取数据库的产品名称
+   * @param dataSource  数据源
+   */
   private String getDatabaseProductName(DataSource dataSource) throws SQLException {
+
     try (Connection con = dataSource.getConnection()) {
       DatabaseMetaData metaData = con.getMetaData();
+      // 获取数据库产品名称
       return metaData.getDatabaseProductName();
     }
 

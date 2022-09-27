@@ -24,14 +24,23 @@ import org.apache.ibatis.binding.MapperProxy.MapperMethodInvoker;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * 映射器代理工厂
+ *
  * @author Lasse Voss
  */
 public class MapperProxyFactory<T> {
 
+  // mapper接口
+  // 当前MapperProxyFactory对象可以创建实现了mapperInterface接口的代理对象，
   private final Class<T> mapperInterface;
+
+  // 缓存
+  // Key：mapperInterface接口中的方法对象，
+  // value：对应的mapperMethod
   private final Map<Method, MapperMethodInvoker> methodCache = new ConcurrentHashMap<>();
 
   public MapperProxyFactory(Class<T> mapperInterface) {
+    // mapper接口
     this.mapperInterface = mapperInterface;
   }
 
@@ -43,14 +52,16 @@ public class MapperProxyFactory<T> {
     return methodCache;
   }
 
-  @SuppressWarnings("unchecked")
-  protected T newInstance(MapperProxy<T> mapperProxy) {
-    return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
+  public T newInstance(SqlSession sqlSession) {
+    // ⚠️MapperProxy<T> implements InvocationHandler
+    final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession/* ⚠️ */, mapperInterface, methodCache);
+    return newInstance(mapperProxy);
   }
 
-  public T newInstance(SqlSession sqlSession) {
-    final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
-    return newInstance(mapperProxy);
+  @SuppressWarnings("unchecked")
+  protected T newInstance(MapperProxy<T> mapperProxy) {
+    // 创建实现了mapperInterface接口的代理对象
+    return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
   }
 
 }

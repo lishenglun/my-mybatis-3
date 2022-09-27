@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hm.m_04.dao.UserDao">
+
+    <cache/>
+
+    <select id="findById" resultType="com.hm.m_04.entity.User" parameterType="int">
+        select *
+        from hm_user
+        where id = #{id}
+    </select>
+
+    <resultMap id="userMap" type="com.hm.m_04.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="birthday" property="birthday"/>
+        <result column="sex" property="sex"/>
+        <result column="address" property="address"/>
+        <!--
+                 ofType 是返回值类型(集合元素)
+                 column 是将当前查询到的id列作为com.eesy_04.itheima.dao.AccountDao.findById方法的入参
+        -->
+        <collection property="accountList" ofType="com.hm.m_04.entity.Account"
+                    select="com.eesy_04.itheima.dao.AccountDao.findById" column="id">
+        </collection>
+    </resultMap>
+
+    <select id="findAll" resultMap="userMap">
+        select *
+        from hm_user
+    </select>
+
+    <update id="updateById">
+        update hm_user
+        set username='李张三'
+        where id = #{id}
+    </update>
+
+</mapper>

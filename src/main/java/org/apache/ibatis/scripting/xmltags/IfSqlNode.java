@@ -19,7 +19,24 @@ package org.apache.ibatis.scripting.xmltags;
  * @author Clinton Begin
  */
 public class IfSqlNode implements SqlNode {
+
   private final ExpressionEvaluator evaluator;
+  /**
+   *   <select id="getUserByUser" resultType="com.msb.mybatis_02.bean.User" useCache="false">
+   *     select *
+   *     from user
+   *     <where>
+   *       <if test="#{id}!=null">
+   *         id = #{id}
+   *       </if>
+   *       <if test="#{username}!=null">
+   *         and username = #{username}
+   *       </if>
+   *     </where>
+   *   </select>
+   *
+   *   test = #{id}!=null
+   */
   private final String test;
   private final SqlNode contents;
 
@@ -31,6 +48,9 @@ public class IfSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    // 用参数对象，判断，表达式是否成立
+    // test = 表达式，例如：<if test="#{id}!=null">中的"#{id}!=null"
+    // context.getBindings() = 参数对象
     if (evaluator.evaluateBoolean(test, context.getBindings())) {
       contents.apply(context);
       return true;

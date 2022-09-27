@@ -17,3 +17,9 @@
  * Utilities to read resources.
  */
 package org.apache.ibatis.io;
+
+/**
+ *
+ * 在使用虚拟文件系统的时候，会涉及到一些IO的操作，我需要把虚拟文件系统的内容给读取回来，读取回来之后进行一个操作
+ *
+ */

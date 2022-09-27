@@ -16,6 +16,8 @@
 package org.apache.ibatis.exceptions;
 
 /**
+ * 结果太多异常，一般是预想select出一条记录，结果得到多干一条记灵时会地此异常
+ *
  * @author Clinton Begin
  */
 public class TooManyResultsException extends PersistenceException {

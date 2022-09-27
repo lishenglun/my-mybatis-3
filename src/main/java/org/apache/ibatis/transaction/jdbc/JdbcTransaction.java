@@ -23,10 +23,13 @@ import javax.sql.DataSource;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.session.TransactionIsolationLevel;
+import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
 import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionException;
 
 /**
+ * 原生的jdbc事务是如何操作，它这也就是如何操作的
+ *
  * {@link Transaction} that makes use of the JDBC commit and rollback facilities directly.
  * It relies on the connection retrieved from the dataSource to manage the scope of the transaction.
  * Delays connection retrieval until getConnection() is called.
@@ -40,16 +43,29 @@ public class JdbcTransaction implements Transaction {
 
   private static final Log log = LogFactory.getLog(JdbcTransaction.class);
 
+  // 数据库连接
   protected Connection connection;
+  // 数据库连接所属的dataSource
+  // 题外：DataSource里面有一些连接池的基本配置，包括数据源的属性，都有
   protected DataSource dataSource;
   protected TransactionIsolationLevel level;
+  // 事务隔离级别
   protected boolean autoCommit;
+  // 是否自动提交
   protected boolean skipSetAutoCommitOnClose;
 
   public JdbcTransaction(DataSource ds, TransactionIsolationLevel desiredLevel, boolean desiredAutoCommit) {
     this(ds, desiredLevel, desiredAutoCommit, false);
   }
 
+  /**
+   * 事务
+   *
+   * @param ds
+   * @param desiredLevel
+   * @param desiredAutoCommit                 自动提交。默认情况下，自动提交为false，参考：{@link DefaultSqlSessionFactory#openSession()}
+   * @param skipSetAutoCommitOnClose
+   */
   public JdbcTransaction(DataSource ds, TransactionIsolationLevel desiredLevel, boolean desiredAutoCommit, boolean skipSetAutoCommitOnClose) {
     dataSource = ds;
     level = desiredLevel;
@@ -64,6 +80,7 @@ public class JdbcTransaction implements Transaction {
   @Override
   public Connection getConnection() throws SQLException {
     if (connection == null) {
+      // ⚠️
       openConnection();
     }
     return connection;
@@ -85,6 +102,7 @@ public class JdbcTransaction implements Transaction {
       if (log.isDebugEnabled()) {
         log.debug("Rolling back JDBC Connection [" + connection + "]");
       }
+      // 回滚事务
       connection.rollback();
     }
   }
@@ -138,14 +156,28 @@ public class JdbcTransaction implements Transaction {
     }
   }
 
+  /**
+   * 正式与数据库建立连接
+   *
+   * @throws SQLException
+   */
   protected void openConnection() throws SQLException {
     if (log.isDebugEnabled()) {
       log.debug("Opening JDBC Connection");
     }
+    /* 1、获取数据库连接 */
+    // 通过数据源获取数据库连接
     connection = dataSource.getConnection();
+
+    /* 2、设置隔离级别 */
+    // level不为空，就设置隔离级别。
+    // 题外：如果level为空，代表用的是数据库默认的隔离级别
     if (level != null) {
       connection.setTransactionIsolation(level.getLevel());
     }
+
+    /* 3、设置自动提交(默认为false) */
+    // 设置所需的自动提交
     setDesiredAutoCommit(autoCommit);
   }
 

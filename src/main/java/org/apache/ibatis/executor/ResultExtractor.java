@@ -23,9 +23,12 @@ import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * 结果提取器
+ *
  * @author Andrew Gustafson
  */
-public class ResultExtractor {
+public class ResultExtractor/* 结果提取器 */ {
+
   private final Configuration configuration;
   private final ObjectFactory objectFactory;
 
@@ -62,4 +65,5 @@ public class ResultExtractor {
     }
     return value;
   }
+
 }

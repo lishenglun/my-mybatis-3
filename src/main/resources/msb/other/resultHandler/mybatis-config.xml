@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+  <properties resource="msb/other/resultHandler/db.properties"/>
+
+  <settings>
+    <setting name="mapUnderscoreToCamelCase" value="true"/>
+  </settings>
+
+  <environments default="development">
+    <environment id="development">
+      <transactionManager type="JDBC"/>
+      <dataSource type="POOLED">
+        <property name="driver" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+      </dataSource>
+    </environment>
+  </environments>
+
+  <mappers>
+    <!-- 如果需要引入多个配置文件，可以直接定义包的名称resource目录下配置的映射文件必须要具体相同的目录 -->
+    <package name="com.msb.other.resultHandler.dao"/>
+  </mappers>
+
+</configuration>

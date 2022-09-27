@@ -16,8 +16,12 @@
 package org.apache.ibatis.scripting.xmltags;
 
 /**
+ * SQL节点（choose|foreach|if|）
+ *
  * @author Clinton Begin
  */
 public interface SqlNode {
+  // apply是SqLNode接口中定义的唯一方法，该方法会根据用户传入的实参，参数解析将SqLNode
+  // SQL片段追加到sqLBuilder中保存，当SQL节点下的所有SqlNode完成解析后，就可以从
   boolean apply(DynamicContext context);
 }

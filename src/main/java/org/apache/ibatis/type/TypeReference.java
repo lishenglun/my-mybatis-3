@@ -27,7 +27,8 @@ import java.lang.reflect.Type;
  */
 public abstract class TypeReference<T> {
 
-  private final Type rawType;
+  // java类型
+  private final Type rawType/* 原始类型 */;
 
   protected TypeReference() {
     rawType = getSuperclassTypeParameter(getClass());
@@ -54,8 +55,11 @@ public abstract class TypeReference<T> {
     return rawType;
   }
 
+  /**
+   * 获取java类型
+   */
   public final Type getRawType() {
-    return rawType;
+    return rawType/* 原始类型 */;
   }
 
   @Override

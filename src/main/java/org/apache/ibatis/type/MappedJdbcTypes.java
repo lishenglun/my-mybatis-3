@@ -38,17 +38,23 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface MappedJdbcTypes {
+
   /**
-   * Returns jdbc types to map {@link TypeHandler}.
+   * jdbc类型
+   *
+   * Returns jdbc types to map {@link TypeHandler}. —— 返回jdbc类型以映射{@link TypeHandler}
    *
    * @return jdbc types
    */
   JdbcType[] value();
 
   /**
-   * Returns whether map to jdbc null type.
+   * 是否包括空Jdbc类型
+   *
+   * Returns whether map to jdbc null type. —— 返回是否映射到jdbc空类型
    *
    * @return {@code true} if map, {@code false} if otherwise
    */
   boolean includeNullJdbcType() default false;
+
 }

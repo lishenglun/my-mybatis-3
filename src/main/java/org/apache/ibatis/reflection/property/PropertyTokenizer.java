@@ -18,26 +18,38 @@ package org.apache.ibatis.reflection.property;
 import java.util.Iterator;
 
 /**
+ * 属性分解为标记（送代器模式，如pensonLoJ.binthdate.yean， 将依次取得person[oJ, binthdate, year）
+ *
  * @author Clinton Begin
  */
 public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
+
+  // 当前表达式的名称
   private String name;
+  // 当前表达式的索引名
   private final String indexedName;
+  // 索引下标
   private String index;
+  // 子表达式
   private final String children;
 
   public PropertyTokenizer(String fullname) {
+    // 查找.的位置
     int delim = fullname.indexOf('.');
     if (delim > -1) {
+      // 初始化name
       name = fullname.substring(0, delim);
+      // 初始化children
       children = fullname.substring(delim + 1);
     } else {
       name = fullname;
       children = null;
     }
+    // 初始化indexedName
     indexedName = name;
     delim = name.indexOf('[');
     if (delim > -1) {
+      // 初始化index
       index = name.substring(delim + 1, name.length() - 1);
       name = name.substring(0, delim);
     }
@@ -59,6 +71,8 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
     return children;
   }
 
+  /* 迭代器模式的体现：hasNext()、next() */
+
   @Override
   public boolean hasNext() {
     return children != null;
@@ -73,4 +87,5 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
   public void remove() {
     throw new UnsupportedOperationException("Remove is not supported, as it has no meaning in the context of properties.");
   }
+
 }

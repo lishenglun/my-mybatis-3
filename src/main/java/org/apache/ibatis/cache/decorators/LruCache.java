@@ -21,14 +21,21 @@ import java.util.Map;
 import org.apache.ibatis.cache.Cache;
 
 /**
+ * 最近最少使用缓存
+ *
+ * 基于 LinkedHashMap 覆盖其 removeEldestEntry() 方法安现。
+ *
  * Lru (least recently used) cache decorator.
  *
  * @author Clinton Begin
  */
 public class LruCache implements Cache {
 
+  // 被装饰的底层cache对象
   private final Cache delegate;
+  // 有序的hashmap，用于记录key最近的使用情况
   private Map<Object, Object> keyMap;
+  // 记录最少被使用的缓存项的key
   private Object eldestKey;
 
   public LruCache(Cache delegate) {

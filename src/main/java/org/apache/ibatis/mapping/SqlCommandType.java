@@ -16,8 +16,18 @@
 package org.apache.ibatis.mapping;
 
 /**
+ * sql语句类型：CRUD
+ *
  * @author Clinton Begin
  */
 public enum SqlCommandType {
-  UNKNOWN, INSERT, UPDATE, DELETE, SELECT, FLUSH
+
+  // 例如：@Options、@SelectKey、<selectKey>定义的sql语句，那么SqlCommandType就是UNKNOWN了
+  UNKNOWN,
+  INSERT,
+  UPDATE,
+  DELETE,
+  SELECT,
+  FLUSH
+
 }

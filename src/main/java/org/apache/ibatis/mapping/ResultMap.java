@@ -38,16 +38,50 @@ public class ResultMap {
   private Configuration configuration;
 
   private String id;
+  // 例如：<resultMap id="userMap" type="com.msb.mybatis_02.bean.User">
+  // 例如：@Results(id = "accountMap")
+  //  @Select("")
+  //  Account accountMap();
+  // 其中方法的返回值就是type
   private Class<?> type;
   private List<ResultMapping> resultMappings;
   private List<ResultMapping> idResultMappings;
   private List<ResultMapping> constructorResultMappings;
-  private List<ResultMapping> propertyResultMappings;
+  private List<ResultMapping> propertyResultMappings/* 属性结果映射 */;
+
+  /**
+   * 例如：<resultMap>子标签中配置的列名，全部转换为大写之后，然后放入到这里
+   * <resultMap id="userMap" type="com.msb.mybatis_02.bean.User">
+   *   <id column="id" property="id"/>
+   *   <result column="username" property="username"/>
+   *   <result column="password" property="password"/>
+   *   <result column="enable" property="enable"/>
+   * </resultMap>
+   */
+  // ResultMap中配置的列名
   private Set<String> mappedColumns;
+  /**
+   * 例如：<resultMap>子标签中配置的属性名
+   * <resultMap id="userMap" type="com.msb.mybatis_02.bean.User">
+   *   <id column="id" property="id"/>
+   *   <result column="username" property="username"/>
+   *   <result column="password" property="password"/>
+   *   <result column="enable" property="enable"/>
+   * </resultMap>
+   */
+  // ResultMap中配置的属性名
   private Set<String> mappedProperties;
+  // 鉴别器
   private Discriminator discriminator;
+  // 是否有嵌套ResultMap（存在nestedResultMapId && 未配置了resultSet属性）
+  // 题外：2种情况有nestedResultMapId：1、配置resultMap属性；2、没resultMap属性值，则用<association>、<collection>、<case>标签对应的ResultMap.id
   private boolean hasNestedResultMaps;
+  // 是否有嵌套查询（存在nestedQueryId）
   private boolean hasNestedQueries;
+  /**
+   * <resultMap autoMapping="true">
+   */
+  // 是否自动映射
   private Boolean autoMapping;
 
   private ResultMap() {
@@ -80,21 +114,32 @@ public class ResultMap {
     }
 
     public ResultMap build() {
+
+      // 必须得有resultMap.id，否则报错
       if (resultMap.id == null) {
         throw new IllegalArgumentException("ResultMaps must have an id");
       }
+
       resultMap.mappedColumns = new HashSet<>();
       resultMap.mappedProperties = new HashSet<>();
       resultMap.idResultMappings = new ArrayList<>();
       resultMap.constructorResultMappings = new ArrayList<>();
       resultMap.propertyResultMappings = new ArrayList<>();
+
       final List<String> constructorArgNames = new ArrayList<>();
+
       for (ResultMapping resultMapping : resultMap.resultMappings) {
+        // 是否有嵌套查询（存在nestedQueryId）
         resultMap.hasNestedQueries = resultMap.hasNestedQueries || resultMapping.getNestedQueryId() != null;
+        // 是否有嵌套ResultMap（存在nestedResultMapId && 未配置了resultSet属性）
         resultMap.hasNestedResultMaps = resultMap.hasNestedResultMaps || (resultMapping.getNestedResultMapId() != null && resultMapping.getResultSet() == null);
+
+        /* 列名 */
+        // <resultMap>子标签中配置的列名
         final String column = resultMapping.getColumn();
         if (column != null) {
-          resultMap.mappedColumns.add(column.toUpperCase(Locale.ENGLISH));
+          // ⚠️列名转为大写，然后放入resultMap.mappedColumns中
+          resultMap.mappedColumns.add(column.toUpperCase(Locale.ENGLISH)/* 转为大写 */);
         } else if (resultMapping.isCompositeResult()) {
           for (ResultMapping compositeResultMapping : resultMapping.getComposites()) {
             final String compositeColumn = compositeResultMapping.getColumn();
@@ -103,10 +148,14 @@ public class ResultMap {
             }
           }
         }
+        /* 属性名 */
+        // <resultMap>子标签中配置的属性名
         final String property = resultMapping.getProperty();
         if (property != null) {
+          // ⚠️将所有的属性名添加到resultMap.mappedProperties中
           resultMap.mappedProperties.add(property);
         }
+
         if (resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR)) {
           resultMap.constructorResultMappings.add(resultMapping);
           if (resultMapping.getProperty() != null) {
@@ -115,6 +164,7 @@ public class ResultMap {
         } else {
           resultMap.propertyResultMappings.add(resultMapping);
         }
+
         if (resultMapping.getFlags().contains(ResultFlag.ID)) {
           resultMap.idResultMappings.add(resultMapping);
         }
@@ -250,7 +300,7 @@ public class ResultMap {
     return discriminator;
   }
 
-  public void forceNestedResultMaps() {
+  public void forceNestedResultMaps/* 强制嵌套结果映射 */() {
     hasNestedResultMaps = true;
   }
 

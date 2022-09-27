@@ -30,23 +30,32 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({})
 public @interface Signature {
+
   /**
-   * Returns the java type.
+   * java类型
+   *
+   * Returns the java type. —— 返回java类型。
    *
    * @return the java type
    */
   Class<?> type();
 
   /**
-   * Returns the method name.
+   * 方法名称
+   *
+   * Returns the method name. —— 返回方法名称。
    *
    * @return the method name
    */
   String method();
 
   /**
-   * Returns java types for method argument.
+   * 方法参数的java类型
+   *
+   * Returns java types for method argument. —— 返回方法参数的java类型。
+   *
    * @return java types for method argument
    */
   Class<?>[] args();
+
 }

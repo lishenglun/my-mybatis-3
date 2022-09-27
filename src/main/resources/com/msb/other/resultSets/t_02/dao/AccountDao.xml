@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msb.other.resultSets.t_02.dao.AccountDao">
+
+  <resultMap id="accountMap" type="com.msb.other.resultSets.t_02.entity.Account">
+    <id column="id" property="id"/>
+    <result column="uid" property="uid"/>
+    <result column="money" property="money"/>
+
+    <!--
+
+    1、存在resultSet属性值，则比较column和foreignColumn中配置的列数，如果不相等，则报错！（2个都不存在，算是相等，不会报错）
+
+    2、️foreignColumn：这是将"当前ResultSet行结果，与原先的ResultSet行结果进行链接"的关键！表示，我当前表字段，所关联的表的字段（注意，是关联的表的字段）
+    例如：一个用户表，用户有一个账户表，账户与用户的关系一对一。
+    >>> 从账户表角度来看，在账户表当中有一个uid，代表了所属的用户，关联的是用户表的id；
+    >>> 所以从账户表的角度而言，账户表的uid字段，它的️foreignColumn，就是用户表的id字段，参考如下：
+
+   -->
+
+    <association property="user" javaType="com.msb.other.resultSets.t_02.entity.User"
+                 resultSet="testResultSet" foreignColumn="id" column="uid">
+    </association>
+
+    <!--  如果同时存在select和resultSet，根据优先原则，会采用select，忽略掉resultSet，所以2个同时配置没有意义  -->
+
+    <!--    <association property="user" javaType="com.msb.other.resultSets.t_02.entity.User"-->
+    <!--                 select="com.msb.other.resultSets.t_02.dao.UserDao.findById"-->
+    <!--                 resultSet="testResultSet" foreignColumn="id"-->
+    <!--                 column="uid"></association>-->
+
+  </resultMap>
+
+  <resultMap id="accountMap2" type="com.msb.other.resultSets.t_02.entity.Account">
+    <id column="id" property="id"/>
+    <result column="uid" property="uid"/>
+    <result column="money" property="money"/>
+  </resultMap>
+
+  <select id="findAll" resultMap="accountMap,accountMap2" resultSets="testResultSet,testResultSet2">
+    select *
+    from hm_account
+  </select>
+
+</mapper>

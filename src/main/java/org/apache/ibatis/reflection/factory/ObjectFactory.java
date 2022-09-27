@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Properties;
 
 /**
+ * 对象工厂：用于指定结果集对象的实例是如何创建的
+ *
  * MyBatis uses an ObjectFactory to create all needed new Objects.
  *
  * @author Clinton Begin

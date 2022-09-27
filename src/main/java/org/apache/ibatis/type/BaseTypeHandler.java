@@ -55,22 +55,40 @@ public abstract class BaseTypeHandler<T> extends TypeReference<T> implements Typ
     this.configuration = c;
   }
 
+  /**
+   * 设置sql参数：往？的位置，设置对应类型的参数，比如：往1位置设置Integer类型的参数，往2位置设置String类型的参数
+   *
+   * @param ps        PreparedStatement
+   * @param i         ？的位置
+   * @param parameter 参数
+   * @param jdbcType  jdbc类型（该参数一般不使用）
+   * @throws SQLException
+   */
   @Override
   public void setParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException {
+    /* 1、如果参数值为null */
+    // 特殊情况，设置NULL
     if (parameter == null) {
+      /* 1.1、如果没设置jdbcType，则报错 */
       if (jdbcType == null) {
         throw new TypeException("JDBC requires that the JdbcType must be specified for all nullable parameters.");
       }
+      /* 1.2、设置参数为null */
       try {
+        // 绑定参数为null的处理
         ps.setNull(i, jdbcType.TYPE_CODE);
       } catch (SQLException e) {
         throw new TypeException("Error setting null for parameter #" + i + " with JdbcType " + jdbcType + " . "
               + "Try setting a different JdbcType for this parameter or a different jdbcTypeForNull configuration property. "
               + "Cause: " + e, e);
       }
-    } else {
+    }
+    /* 2、参数值不为null，则设置参数 */
+    else {
       try {
-        setNonNullParameter(ps, i, parameter, jdbcType);
+        // ⚠️
+        // 绑定非空参数，该方法抽象方法，由子类实现
+        setNonNullParameter(ps, i/* ?位置 */, parameter, jdbcType);
       } catch (Exception e) {
         throw new TypeException("Error setting non null for parameter #" + i + " with JdbcType " + jdbcType + " . "
               + "Try setting a different JdbcType for this parameter or a different configuration property. "
@@ -82,6 +100,7 @@ public abstract class BaseTypeHandler<T> extends TypeReference<T> implements Typ
   @Override
   public T getResult(ResultSet rs, String columnName) throws SQLException {
     try {
+      // 抽象方法，有多个重载，由子类实现
       return getNullableResult(rs, columnName);
     } catch (Exception e) {
       throw new ResultMapException("Error attempting to get column '" + columnName + "' from result set.  Cause: " + e, e);
@@ -106,9 +125,21 @@ public abstract class BaseTypeHandler<T> extends TypeReference<T> implements Typ
     }
   }
 
+  /**
+   * sql参数值不为null时，设置参数时调用的方法。
+   * 怎么设参数还得交给不同的子类完成。
+   *
+   * @param ps                PreparedStatement
+   * @param i                 sql参数索引位置
+   * @param parameter         sql参数值
+   * @param jdbcType          jdbc类型
+   * @throws SQLException
+   */
   public abstract void setNonNullParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException;
 
   /**
+   * 以下个方法是取得可能为nULL的结果，具体交给干类完成
+   *
    * Gets the nullable result.
    *
    * @param rs

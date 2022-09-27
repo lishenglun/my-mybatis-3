@@ -33,6 +33,8 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
 /**
+ * 预处理语句处理器(PRBPARED)
+ *
  * @author Clinton Begin
  */
 public class PreparedStatementHandler extends BaseStatementHandler {
@@ -60,8 +62,14 @@ public class PreparedStatementHandler extends BaseStatementHandler {
 
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
+    /* 1、通过Statement，向数据库发出sql执行查询 */
     PreparedStatement ps = (PreparedStatement) statement;
+    // 执行sql操作
+    // 注意：执行完这步之后，ps里面包含了结果
     ps.execute();
+
+    /* 2、用resultSetHandler处理查询到的结果 */
+    // 用DefaultResultSetHandler，对结果集进行映射处理
     return resultSetHandler.handleResultSets(ps);
   }
 
@@ -72,6 +80,9 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     return resultSetHandler.handleCursorResultSets(ps);
   }
 
+  /**
+   * 创建PreparedStatement
+   */
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     String sql = boundSql.getSql();
@@ -83,14 +94,26 @@ public class PreparedStatementHandler extends BaseStatementHandler {
         return connection.prepareStatement(sql, keyColumnNames);
       }
     } else if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {
+      // ⚠️创建普通的PreparedStatement对象
       return connection.prepareStatement(sql);
     } else {
+      // 设置结果集是否可以滚动以及其游标是否可以上下移动，设置结果集是否可更新
       return connection.prepareStatement(sql, mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);
     }
   }
 
+  /**
+   * 设置sql参数：
+   * （1）根据，之前getBoundSql()中构建的参数映射（ParameterMapping）中获取参数名、实参数对象；然后根据参数名去实参对象中，获取参数值；
+   * （2）然后通过TypeHandler，向指定索引位置，设置对应类型的参数值。TypeHandler最终也是调用Statement，通过Statement，设置sql参数值。
+   *
+   * @param statement
+   * @throws SQLException
+   */
   @Override
   public void parameterize(Statement statement) throws SQLException {
+    // 通过Statement，设置sql参数值
+    // DefaultParameterHandler
     parameterHandler.setParameters((PreparedStatement) statement);
   }
 

@@ -17,3 +17,10 @@
  * Utilities for JDBC.
  */
 package org.apache.ibatis.jdbc;
+
+
+/**
+ *
+ * 进行数据库的连接操作
+ *
+ */

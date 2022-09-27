@@ -27,27 +27,30 @@ public class IntegerTypeHandler extends BaseTypeHandler<Integer> {
 
   @Override
   public void setNonNullParameter(PreparedStatement ps, int i, Integer parameter, JdbcType jdbcType)
-      throws SQLException {
+    throws SQLException {
+    // 调用PreparedStatement.setInt实现参数绑定
+    // ps.setInt()：会把对应的参数转换成int类型，然后赋值给i下标所在的位置
     ps.setInt(i, parameter);
   }
 
   @Override
   public Integer getNullableResult(ResultSet rs, String columnName)
-      throws SQLException {
+    throws SQLException {
+    // 获取指定列的值（里面直接根据列名，转成int类型）
     int result = rs.getInt(columnName);
     return result == 0 && rs.wasNull() ? null : result;
   }
 
   @Override
   public Integer getNullableResult(ResultSet rs, int columnIndex)
-      throws SQLException {
+    throws SQLException {
     int result = rs.getInt(columnIndex);
     return result == 0 && rs.wasNull() ? null : result;
   }
 
   @Override
   public Integer getNullableResult(CallableStatement cs, int columnIndex)
-      throws SQLException {
+    throws SQLException {
     int result = cs.getInt(columnIndex);
     return result == 0 && cs.wasNull() ? null : result;
   }

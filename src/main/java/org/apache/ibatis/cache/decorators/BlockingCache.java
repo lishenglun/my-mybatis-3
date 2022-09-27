@@ -23,6 +23,9 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
 /**
+ * 阻塞式缓存。作用：保证只有一个线程，能去我们的缓存中，查找指定key的数据，
+ *
+ *
  * <p>Simple blocking decorator
  *
  * <p>Simple and inefficient version of EhCache's BlockingCache decorator.
@@ -36,8 +39,13 @@ import org.apache.ibatis.cache.CacheException;
  */
 public class BlockingCache implements Cache {
 
+  // 阻塞超时时长
   private long timeout;
+
+  // 被装饰的底层Cache对象
   private final Cache delegate;
+
+  // 每个key都有对应的ReentrantLock对象
   private final ConcurrentHashMap<Object, CountDownLatch> locks;
 
   public BlockingCache(Cache delegate) {

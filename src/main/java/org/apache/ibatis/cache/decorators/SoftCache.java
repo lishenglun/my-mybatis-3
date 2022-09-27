@@ -23,19 +23,29 @@ import java.util.LinkedList;
 import org.apache.ibatis.cache.Cache;
 
 /**
+ * 软引用缓存，核心是SoftReference
+ *
+ * 题外：在jvm当中，有强、软、弱、虚、这4种引用，这里通过软引用来进行对应的清理工作！
+ *
  * Soft Reference cache decorator
  * Thanks to Dr. Heinz Kabutz for his guidance here.
  *
  * @author Clinton Begin
  */
 public class SoftCache implements Cache {
+
+  // 在SoftCache中，最近使用的一部分缓存项不会被GC回收，这就是通过将其value添加到hardLinksToAvoidGarbageCollection
   private final Deque<Object> hardLinksToAvoidGarbageCollection;
+  // 引用队列，用于记录己经被GC回收的缓存项对应的SoftEntry对象
   private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;
+  // 底层被装饰的底层Cache对象
   private final Cache delegate;
+  // 强连接的个数，默认是256
   private int numberOfHardLinks;
 
   public SoftCache(Cache delegate) {
     this.delegate = delegate;
+    // 默认链表可以存256元素
     this.numberOfHardLinks = 256;
     this.hardLinksToAvoidGarbageCollection = new LinkedList<>();
     this.queueOfGarbageCollectedEntries = new ReferenceQueue<>();

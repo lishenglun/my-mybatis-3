@@ -44,6 +44,7 @@ public class ParameterExpression extends HashMap<String, String> {
     if (expression.charAt(p) == '(') {
       expression(expression, p + 1);
     } else {
+      // ⚠️
       property(expression, p);
     }
   }
@@ -66,7 +67,12 @@ public class ParameterExpression extends HashMap<String, String> {
   private void property(String expression, int left) {
     if (left < expression.length()) {
       int right = skipUntil(expression, left, ",:");
-      put("property", trimmedStr(expression, left, right));
+      /**
+       * 例如：expression = id
+       * 就是put("property", id);
+       */
+      // ⚠️
+      put("property", trimmedStr(expression, left, right)/* 去掉空格 */);
       jdbcTypeOpt(expression, right);
     }
   }

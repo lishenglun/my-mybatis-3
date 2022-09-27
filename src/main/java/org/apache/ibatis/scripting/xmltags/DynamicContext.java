@@ -31,7 +31,9 @@ import org.apache.ibatis.session.Configuration;
  */
 public class DynamicContext {
 
+  // 参数对象
   public static final String PARAMETER_OBJECT_KEY = "_parameter";
+  // 数据库厂商
   public static final String DATABASE_ID_KEY = "_databaseId";
 
   static {
@@ -42,16 +44,37 @@ public class DynamicContext {
   private final StringJoiner sqlBuilder = new StringJoiner(" ");
   private int uniqueNumber = 0;
 
+  /**
+   * 构建ContextMap；然后往ContextMap里面设置参数（参数对象、数据库厂商）
+   * >>> ContextMap主要包含2个变量：参数对象的MetaObject、是否存在当前参数对象的TypeHandler
+   *
+   * @param configuration
+   * @param parameterObject     参数对象 —— "参数名"与"实参"之间的对应关系
+   */
   public DynamicContext(Configuration configuration, Object parameterObject) {
+    /* 1、构建ContextMap */
+
+    // （1）参数对象不为null && 参数对象不是Map类型
     if (parameterObject != null && !(parameterObject instanceof Map)) {
+      // 构建参数对象的MetaObject
       MetaObject metaObject = configuration.newMetaObject(parameterObject);
+      // 是否存在当前参数对象的TypeHandler
       boolean existsTypeHandler = configuration.getTypeHandlerRegistry().hasTypeHandler(parameterObject.getClass());
+      // ⚠️构建ContextMap
       bindings = new ContextMap(metaObject, existsTypeHandler);
-    } else {
+    }
+    // （2）参数对象为null || 参数对象是Map类型
+    else {
+      // ⚠️构建ContextMap
       bindings = new ContextMap(null, false);
     }
-    bindings.put(PARAMETER_OBJECT_KEY, parameterObject);
-    bindings.put(DATABASE_ID_KEY, configuration.getDatabaseId());
+
+    /* 2、往ContextMap里面设置参数 */
+
+    // 设置参数对象
+    bindings.put(PARAMETER_OBJECT_KEY/* _parameter */, parameterObject);
+    // 设置数据库厂商
+    bindings.put(DATABASE_ID_KEY/* _databaseId */, configuration.getDatabaseId());
   }
 
   public Map<String, Object> getBindings() {
@@ -75,12 +98,17 @@ public class DynamicContext {
   }
 
   static class ContextMap extends HashMap<String, Object> {
+
     private static final long serialVersionUID = 2977601501966151582L;
+    // 参数对象的MetaObject
     private final MetaObject parameterMetaObject;
+    // 是否存在当前参数对象的TypeHandler
     private final boolean fallbackParameterObject;
 
     public ContextMap(MetaObject parameterMetaObject, boolean fallbackParameterObject) {
+      // 参数对象的MetaObject
       this.parameterMetaObject = parameterMetaObject;
+      // 是否存在当前参数对象的TypeHandler
       this.fallbackParameterObject = fallbackParameterObject;
     }
 

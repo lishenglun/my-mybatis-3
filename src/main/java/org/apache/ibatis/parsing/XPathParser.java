@@ -46,11 +46,21 @@ import org.xml.sax.SAXParseException;
  */
 public class XPathParser {
 
+  // mybatis配置文件对应的document对象
   private final Document document;
+  // 是否验证配置文件
   private boolean validation;
+  // 用于加载本地DTD文件（题外：DTD文件是用于验证mybatis配置文件）
   private EntityResolver entityResolver;
+  // mybatis-config.xm中<properties>标签定义的键值对集合
   private Properties variables;
+  // Xpath对象：专门用来解析xml文件的（解析任何具备格式化信息的配置文件）
   private XPath xpath;
+
+
+  /* 一些构造函数,全部调用commonConstructor()和createDocument() */
+
+  /* 1~4,默认不需要验证配置文件 */
 
   public XPathParser(String xml) {
     commonConstructor(false, null, null);
@@ -72,6 +82,7 @@ public class XPathParser {
     this.document = document;
   }
 
+  /* 5~8,传入是否需要验证配置文件的参数 */
   public XPathParser(String xml, boolean validation) {
     commonConstructor(validation, null, null);
     this.document = createDocument(new InputSource(new StringReader(xml)));
@@ -91,6 +102,9 @@ public class XPathParser {
     commonConstructor(validation, null, null);
     this.document = document;
   }
+
+
+  /* 9~12,传入是否需要验证配置文件的参数、以及Properties */
 
   public XPathParser(String xml, boolean validation, Properties variables) {
     commonConstructor(validation, variables, null);
@@ -112,6 +126,9 @@ public class XPathParser {
     this.document = document;
   }
 
+
+  /* 13~16,传入是否需要验证配置文件的参数、以及Properties、EntityResolver */
+
   public XPathParser(String xml, boolean validation, Properties variables, EntityResolver entityResolver) {
     commonConstructor(validation, variables, entityResolver);
     this.document = createDocument(new InputSource(new StringReader(xml)));
@@ -123,7 +140,10 @@ public class XPathParser {
   }
 
   public XPathParser(InputStream inputStream, boolean validation, Properties variables, EntityResolver entityResolver) {
-    commonConstructor(validation, variables, entityResolver);
+    /* 1、解析mybatis配置文件为一个document对象 */
+    // 调用通用的构造函数，保存一些变量信息到当前对象中
+    commonConstructor/* 通用的构造器 */(validation/* 是否验证 */, variables/* 变量信息 */, entityResolver);
+    // 通过配置文件的输入流，把输入流里面的数据，转换成一个document对象
     this.document = createDocument(new InputSource(inputStream));
   }
 
@@ -132,6 +152,9 @@ public class XPathParser {
     this.document = document;
   }
 
+  /**
+   * 17.设置Properties
+   */
   public void setVariables(Properties variables) {
     this.variables = variables;
   }
@@ -141,7 +164,9 @@ public class XPathParser {
   }
 
   public String evalString(Object root, String expression) {
+    //1.先用xpath解析
     String result = (String) evaluate(expression, root, XPathConstants.STRING);
+    //2.再调用PropertyParser去解析,也就是替换 ${} 这种格式的字符串
     result = PropertyParser.parse(result, variables);
     return result;
   }
@@ -182,6 +207,7 @@ public class XPathParser {
     return evalFloat(document, expression);
   }
 
+  //??这里有点疑问，为何Float用evalString,Double用evaluate XPathConstants.NUMBER
   public Float evalFloat(Object root, String expression) {
     return Float.valueOf(evalString(root, expression));
   }
@@ -198,6 +224,7 @@ public class XPathParser {
     return evalNodes(document, expression);
   }
 
+  //返回节点List
   public List<XNode> evalNodes(Object root, String expression) {
     List<XNode> xnodes = new ArrayList<>();
     NodeList nodes = (NodeList) evaluate(expression, root, XPathConstants.NODESET);
@@ -211,6 +238,7 @@ public class XPathParser {
     return evalNode(document, expression);
   }
 
+  //返回节点
   public XNode evalNode(Object root, String expression) {
     Node node = (Node) evaluate(expression, root, XPathConstants.NODE);
     if (node == null) {
@@ -221,26 +249,44 @@ public class XPathParser {
 
   private Object evaluate(String expression, Object root, QName returnType) {
     try {
+      //最终合流到这儿，直接调用XPath.evaluate
       return xpath.evaluate(expression, root, returnType);
     } catch (Exception e) {
       throw new BuilderException("Error evaluating XPath.  Cause: " + e, e);
     }
   }
 
+  /**
+   * 解析配置文件，得到一个document对象
+   *
+   * 题外：在创建文档之前一定要先调用commonConstructor()完成初始化操作
+   */
   private Document createDocument(InputSource inputSource) {
     // important: this must only be called AFTER common constructor
     try {
+      // 创建DocumentBuilderFactory对象
+      // 这个是DOM解析方式
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      // 对DocumentBuilderFactory进行一些列的配置
       factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+      // 设置是否需要验证配置文件的标识
       factory.setValidating(validation);
 
+      // 命名空间
       factory.setNamespaceAware(false);
+      // 忽略注释
       factory.setIgnoringComments(true);
+      // 忽略空白
       factory.setIgnoringElementContentWhitespace(false);
+      // 把CDATA节点转换为Text节点
       factory.setCoalescing(false);
+      // 扩展实体引用
       factory.setExpandEntityReferences(true);
 
+      // 创建DocumentBuilder对象，并进行配置
       DocumentBuilder builder = factory.newDocumentBuilder();
+      // 需要注意的就是定义了EntityResolver(XMLMapperEntityResolver)，这样不用联网去获取DTD，
+      // 将DTD放在org\apache\ibatis\builder\xml\mybatis-3-config.dtd,来达到验证xml合法性的目的
       builder.setEntityResolver(entityResolver);
       builder.setErrorHandler(new ErrorHandler() {
         @Override
@@ -264,11 +310,18 @@ public class XPathParser {
     }
   }
 
+  /**
+   * 通用的构造函数，除了把参数都设置到实例变量里面去以外，还初始化了XPath
+   * @param validation
+   * @param variables
+   * @param entityResolver
+   */
   private void commonConstructor(boolean validation, Properties variables, EntityResolver entityResolver) {
     this.validation = validation;
     this.entityResolver = entityResolver;
     this.variables = variables;
     XPathFactory factory = XPathFactory.newInstance();
+    // 创建XPath对象
     this.xpath = factory.newXPath();
   }
 

@@ -54,6 +54,8 @@ public @interface SelectProvider {
   /**
    * Specify a type that implements an SQL provider method.
    *
+   * 指定实现 SQL 提供程序方法的类型。
+   *
    * @return a type that implements an SQL provider method
    * @since 3.5.2
    * @see #type()

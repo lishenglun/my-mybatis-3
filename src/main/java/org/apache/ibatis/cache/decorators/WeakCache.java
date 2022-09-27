@@ -23,12 +23,15 @@ import java.util.LinkedList;
 import org.apache.ibatis.cache.Cache;
 
 /**
+ * 弱引用缓存，可以看到代码和SoftCache如出一辙，就是SoftReference变成了WeakReference
+ *
  * Weak Reference cache decorator.
  * Thanks to Dr. Heinz Kabutz for his guidance here.
  *
  * @author Clinton Begin
  */
 public class WeakCache implements Cache {
+
   private final Deque<Object> hardLinksToAvoidGarbageCollection;
   private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;
   private final Cache delegate;

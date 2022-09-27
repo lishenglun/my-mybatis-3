@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 import org.apache.ibatis.reflection.Reflector;
 
 /**
+ * 调用方法
+ *
  * @author Clinton Begin
  */
 public class MethodInvoker implements Invoker {
@@ -39,12 +41,14 @@ public class MethodInvoker implements Invoker {
   }
 
   @Override
-  public Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException {
+  public Object invoke(Object target/* 结果对象（有可能是代理，也有可能不是代理） */, Object[] args/* 参数值 */) throws IllegalAccessException, InvocationTargetException {
     try {
+      // ⚠️
       return method.invoke(target, args);
     } catch (IllegalAccessException e) {
       if (Reflector.canControlMemberAccessible()) {
         method.setAccessible(true);
+        // ⚠️
         return method.invoke(target, args);
       } else {
         throw e;

@@ -42,20 +42,49 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
 /**
+ * 结果延迟加载器
+ *
  * @author Clinton Begin
  * @author Franta Mejta
  */
 public class ResultLoaderMap {
 
+  // 延迟加载集合
+  // key：属性名大写
+  // value：LoadPair对象，里面保存property、metaResultObject、resultLoader
   private final Map<String, LoadPair> loaderMap = new HashMap<>();
 
+  /**
+   * 添加延迟加载器
+   *
+   * 把要延迟加载的属性存储到ResultLoaderMap里（一个哈希表）
+   *
+   * 注意：⚠️只有懒加载的嵌套查询会调用该方法！
+   *
+   * @param property
+   * @param metaResultObject
+   * @param resultLoader
+   */
   public void addLoader(String property, MetaObject metaResultObject, ResultLoader resultLoader) {
-    String upperFirst = getUppercaseFirstProperty(property);
+    /* 1、属性名大写 */
+    String upperFirst = getUppercaseFirstProperty/* 获取大写第一个属性 */(property);
     if (!upperFirst.equalsIgnoreCase(property) && loaderMap.containsKey(upperFirst)) {
       throw new ExecutorException("Nested lazy loaded result property '" + property
               + "' for query id '" + resultLoader.mappedStatement.getId()
               + " already exists in the result map. The leftmost property of all lazy loaded properties must be unique within a result map.");
     }
+
+    /*
+
+    2、创建LoadPair对象，里面保存property、metaResultObject、resultLoader
+    然后往loaderMap放入"属性名"和LoadPair的映射关系
+
+     */
+    //key是property，这样当客户端调用getter来取真实值时，会判断这个属性是否是延迟加载属性，是才去加载
+    // 可参见CglibProxyFactory的代码
+    //    if (lazyLoader.hasLoader(property)) {
+    //        lazyLoader.load(property);
+    //    }
     loaderMap.put(upperFirst, new LoadPair(property, metaResultObject, resultLoader));
   }
 
@@ -75,12 +104,23 @@ public class ResultLoaderMap {
     return loaderMap.containsKey(property.toUpperCase(Locale.ENGLISH));
   }
 
+  /**
+   * 通过ResultLoader加载数据，和设置属性值
+   *
+   * @param property    属性名（也作为方法名）
+   * @return
+   * @throws SQLException
+   */
   public boolean load(String property) throws SQLException {
+    // 先删除key(防止第二次又去查数据库就不对了)，并获取LoadPair
     LoadPair pair = loaderMap.remove(property.toUpperCase(Locale.ENGLISH));
+
+    // 通过ResultLoader加载数据，和设置属性值
     if (pair != null) {
       pair.load();
       return true;
     }
+
     return false;
   }
 
@@ -88,12 +128,23 @@ public class ResultLoaderMap {
     loaderMap.remove(property.toUpperCase(Locale.ENGLISH));
   }
 
+  /**
+   * 触发所有的延迟加载：通过ResultLoader加载数据，和设置属性值
+   *
+   * @throws SQLException
+   */
   public void loadAll() throws SQLException {
+    // 获取所有的属性名，作为方法名
     final Set<String> methodNameSet = loaderMap.keySet();
+    // 转换为数组
     String[] methodNames = methodNameSet.toArray(new String[methodNameSet.size()]);
+
+    // 遍历方法名
     for (String methodName : methodNames) {
+      // 通过ResultLoader加载数据，和设置属性值
       load(methodName);
     }
+
   }
 
   private static String getUppercaseFirstProperty(String property) {
@@ -104,6 +155,7 @@ public class ResultLoaderMap {
   /**
    * Property which was not loaded yet.
    */
+  //静态内部类，加载对
   public static class LoadPair implements Serializable {
 
     private static final long serialVersionUID = 20130412;
@@ -145,8 +197,12 @@ public class ResultLoaderMap {
     private Serializable mappedParameter;
 
     private LoadPair(final String property, MetaObject metaResultObject, ResultLoader resultLoader) {
+
+      // 属性名
       this.property = property;
+      // 结果对象对应的MetaObject
       this.metaResultObject = metaResultObject;
+      // 结果加载器
       this.resultLoader = resultLoader;
 
       /* Save required information only if original object can be serialized. */
@@ -171,6 +227,11 @@ public class ResultLoaderMap {
       }
     }
 
+    /**
+     * 通过ResultLoader加载数据，和设置属性值
+     *
+     * @throws SQLException
+     */
     public void load() throws SQLException {
       /* These field should not be null unless the loadpair was serialized.
        * Yet in that case this method should not be called. */
@@ -181,9 +242,16 @@ public class ResultLoaderMap {
         throw new IllegalArgumentException("resultLoader is null");
       }
 
+      // ⚠️加载数据，和设置属性值
       this.load(null);
     }
 
+    /**
+     * 加载数据，和设置属性值
+     *
+     * @param userObject
+     * @throws SQLException
+     */
     public void load(final Object userObject) throws SQLException {
       if (this.metaResultObject == null || this.resultLoader == null) {
         if (this.mappedParameter == null) {
@@ -216,7 +284,9 @@ public class ResultLoaderMap {
                 old.parameterObject, old.targetType, old.cacheKey, old.boundSql);
       }
 
-      this.metaResultObject.setValue(property, this.resultLoader.loadResult());
+      // （1）通过ResultLoader(结果加载器)，️发起查询和获取结果；
+      // （2）然后往对应行的结果对象中，设置属性名和属性值
+      this.metaResultObject.setValue(property, this.resultLoader.loadResult()/* ⚠️发起查询和获取结果 */);
     }
 
     private Configuration getConfiguration() {

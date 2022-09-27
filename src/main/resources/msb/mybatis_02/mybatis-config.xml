@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?> <!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+  <properties resource="msb/mybatis_02/db.properties"/>
+
+  <settings>
+    <setting name="mapUnderscoreToCamelCase" value="true"/>
+    <!-- 开启延迟加载的支持 -->
+    <setting name="lazyLoadingEnabled" value="true"/>
+    <setting name="aggressiveLazyLoading" value="false"/>
+    <!-- 开启二级缓存的支持（默认开启，所以这里可以不用配置） -->
+    <!--  ⚠️还要去mapper文件中加上<cache>标签，才会为对应的mapper加上二级缓存  -->
+    <setting name="cacheEnabled" value="true"/>
+  </settings>
+
+  <!--
+
+  对象包装工厂
+  （注意：这个标签的放置位置，具体查看dtd文件，例如，这里不能放置到<environments>标签下面，否则会报错，也不能放置到<settings>上面，也会报错！）
+
+  -->
+  <!--  <objectWrapperFactory type="com.msb.other.objectWrapperFactory.MapWrapperFactory"/>-->
+
+  <!--    <typeAliases>-->
+  <!--        <package name="com.msb.mybatis_02.dao"/>-->
+  <!--    </typeAliases>-->
+
+  <environments default="development">
+    <environment id="development">
+      <transactionManager type="JDBC"/>
+      <!--   数据库连接池的配置，使用连接池管理数据库链接   -->
+      <!--
+            Mybatis将它自己的数据源分为三类：
+            (1)UNPOOLED：不使用连接池的数据源 —— UnpooledDataSource
+            (2)POOLED：使用连接池的数据源 —— PooledDataSource
+            (3)JNDI：使用JNDI实现的数据源
+
+            题外：很多时候我们所说的数据源就是为了更好的管理数据库连接，也就是我们所说的连接池技术
+
+            MyBatis 在初始化时，根据<dataSource>的 type 属性来创建相应类型的的数据源 DataSource，即:
+            >>> type=”POOLED”:MyBatis 会创建 PooledDataSource 实例
+            >>> type=”UNPOOLED” : MyBatis 会创建 UnpooledDataSource 实例
+            >>> type=”JNDI”:MyBatis 会从 JNDI 服务上查找 DataSource 实例，然后返回使用
+
+      -->
+      <dataSource type="POOLED">
+        <property name="driver" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+      </dataSource>
+    </environment>
+  </environments>
+
+  <!--
+        数据库厂商标识：根据不同的数据库厂商执行不同的语句，比如：mysql和oracle的sql语句是不一样的！
+        注意：多厂商的支持是基于映射语句中的databaseId属性。
+  -->
+  <!--    <databaseIdProvider type="DB_VENDOR">-->
+  <!--        <property name="MySql" value="mysql"/>-->
+  <!--        <property name="SQL Server" value="sqlserver"/>-->
+  <!--        <property name="Oracle" value="oracle"/>-->
+  <!--    </databaseIdProvider>-->
+
+  <mappers>
+    <!-- 如果需要引入多个配置文件，可以直接定义包的名称resource目录下配置的映射文件必须要具体相同的目录 -->
+    <package name="com.msb.mybatis_02.dao"/>
+  </mappers>
+
+</configuration>

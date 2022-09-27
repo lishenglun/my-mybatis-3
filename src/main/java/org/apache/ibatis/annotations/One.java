@@ -44,6 +44,8 @@ public @interface One {
   /**
    * Returns the result map id used to map single object.
    *
+   * 返回用于映射单个对象的结果映射 ID。
+   *
    * @return the result map id
    * @since 3.5.5
    */

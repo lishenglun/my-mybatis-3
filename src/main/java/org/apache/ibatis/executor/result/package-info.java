@@ -17,3 +17,10 @@
  * Contains the result handlers.
  */
 package org.apache.ibatis.executor.result;
+
+
+/**
+ *
+ * 后置处理映射好的结果对象的
+ *
+ */

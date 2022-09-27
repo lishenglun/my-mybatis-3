@@ -46,6 +46,9 @@ import org.apache.ibatis.reflection.property.PropertyNamer;
 import org.apache.ibatis.util.MapUtil;
 
 /**
+ * 反射器，属性->getter/setter的映射器，而且加了缓存
+ * 可参考ReflectorTest来理解这个类的用处
+ *
  * This class represents a cached set of class definition information that
  * allows for easy mapping between property names and getter/setter methods.
  *
@@ -54,31 +57,49 @@ import org.apache.ibatis.util.MapUtil;
 public class Reflector {
 
   private static final MethodHandle isRecordMethodHandle = getIsRecordMethodHandle();
+  // 对应的Class类型
   private final Class<?> type;
+  // getter的属性列表
   private final String[] readablePropertyNames;
+  // setter的属性列表
   private final String[] writablePropertyNames;
+  // setter的方法列表，对setter方法对应"Method对象的封裝"
   private final Map<String, Invoker> setMethods = new HashMap<>();
+  // getter的方法列表
   private final Map<String, Invoker> getMethods = new HashMap<>();
+  // 记录了响应的setter方法的参数类型，Key是属性名称，value是setter方法的参数类型
   private final Map<String, Class<?>> setTypes = new HashMap<>();
+  // 跟上面一致
   private final Map<String, Class<?>> getTypes = new HashMap<>();
+  // 默认的构造函数
   private Constructor<?> defaultConstructor;
 
+  // 记录了所有属性名称的集合
   private Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
   public Reflector(Class<?> clazz) {
+    // 初始化type字段
     type = clazz;
+    // 查找clazz的默认构造方法
     addDefaultConstructor(clazz);
+    // 处理class中的getter方法，填充getMethods集合和getTypes集合
     Method[] classMethods = getClassMethods(clazz);
     if (isRecord(type)) {
       addRecordGetMethods(classMethods);
     } else {
+      // 处理class中的getter方法，填充getMethods集合和getTypes集合
       addGetMethods(classMethods);
+      //处理class中的setter方法，填充setMethods集合和setTypes集合
       addSetMethods(classMethods);
+      // 处理没有getter/setter方法的字段
       addFields(clazz);
     }
+    // 根据getMethods/setMethods集合，初始化可读写属性的名称集合
     readablePropertyNames = getMethods.keySet().toArray(new String[0]);
     writablePropertyNames = setMethods.keySet().toArray(new String[0]);
+    // 初始化caseInsensitivePropertyMap集合，其中记录了所有大写格式的属性名称
     for (String propName : readablePropertyNames) {
+      // 这里为了能找到某一个属性，就把他变成大写作为map的key
       caseInsensitivePropertyMap.put(propName.toUpperCase(Locale.ENGLISH), propName);
     }
     for (String propName : writablePropertyNames) {

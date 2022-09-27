@@ -25,17 +25,34 @@ import org.apache.ibatis.util.MapUtil;
  */
 public class LanguageDriverRegistry {
 
+  // 语言驱动器集合
+  // key：语言驱动器类型
+  // value：语言驱动器实例
   private final Map<Class<? extends LanguageDriver>, LanguageDriver> LANGUAGE_DRIVER_MAP = new HashMap<>();
 
   private Class<? extends LanguageDriver> defaultDriverClass;
 
+  /**
+   * 注册语言驱动器
+   * （1）如果"语言驱动器集合"中不存在该类型的语言驱动器，则实例化对应类型的语言驱动器，并且存放"语言驱动器类型"和"语言驱动器实例"之间的对应关系
+   * （2）如果存在，则什么事情都不做
+   *
+   * 题外：在实例化Configuration的构造方法中，就注入了2个语言驱动器
+   *
+   * @param cls     语言驱动器类型
+   */
   public void register(Class<? extends LanguageDriver> cls) {
     if (cls == null) {
       throw new IllegalArgumentException("null is not a valid Language Driver");
     }
-    MapUtil.computeIfAbsent(LANGUAGE_DRIVER_MAP, cls, k -> {
+    // 注册语言驱动器
+    // （1）如果"语言驱动器集合"中不存在该类型的语言驱动器，则实例化对应类型的语言驱动器，并且存放，语言驱动器类型和语言驱动器实例之间的对应关系
+    // （2）如果存在，则什么事情都不做
+    MapUtil.computeIfAbsent(LANGUAGE_DRIVER_MAP, cls/* 语言驱动器类型 */, k -> {
       try {
-        return k.getDeclaredConstructor().newInstance();
+        /* 实例化语言驱动器 */
+        LanguageDriver languageDriver = k.getDeclaredConstructor().newInstance();
+        return languageDriver;
       } catch (Exception ex) {
         throw new ScriptingException("Failed to load language driver for " + cls.getName(), ex);
       }

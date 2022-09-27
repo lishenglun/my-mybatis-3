@@ -33,10 +33,12 @@ import org.w3c.dom.NodeList;
  * @author Clinton Begin
  */
 public class XMLScriptBuilder extends BaseBuilder {
-
+  // 标签，例如：<selectKey>标签
   private final XNode context;
   private boolean isDynamic;
   private final Class<?> parameterType;
+  // 动态标签处理器
+  // <trim>、<where>、<set>、<foreach>、<if>、<choose>、<when>、<otherwise>、<bind>标签处理器
   private final Map<String, NodeHandler> nodeHandlerMap = new HashMap<>();
 
   public XMLScriptBuilder(Configuration configuration, XNode context) {
@@ -50,7 +52,9 @@ public class XMLScriptBuilder extends BaseBuilder {
     initNodeHandlerMap();
   }
 
-
+  /**
+   * 初始化标签处理程序的映射关系，例如：<if>标签，由IfHandler进行处理
+   */
   private void initNodeHandlerMap() {
     nodeHandlerMap.put("trim", new TrimHandler());
     nodeHandlerMap.put("where", new WhereHandler());
@@ -63,23 +67,46 @@ public class XMLScriptBuilder extends BaseBuilder {
     nodeHandlerMap.put("bind", new BindHandler());
   }
 
+  /**
+   * 解析标签
+   *
+   * @return
+   */
   public SqlSource parseScriptNode() {
-    MixedSqlNode rootSqlNode = parseDynamicTags(context);
+    MixedSqlNode rootSqlNode = parseDynamicTags/* 解析动态标签 */(context);
     SqlSource sqlSource;
     if (isDynamic) {
-      sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
+      sqlSource = new DynamicSqlSource/* 动态sql源 */(configuration, rootSqlNode);
     } else {
-      sqlSource = new RawSqlSource(configuration, rootSqlNode, parameterType);
+      sqlSource = new RawSqlSource/* 原始sql源 */(configuration, rootSqlNode, parameterType);
     }
     return sqlSource;
   }
 
+  /**
+   * 解析动态标签（里面包含了普通标签和动态标签）
+   *
+   * @param node
+   * @return
+   */
   protected MixedSqlNode parseDynamicTags(XNode node) {
+    // 标签中的sql语句集合
     List<SqlNode> contents = new ArrayList<>();
+    // 获取所有的子节点
     NodeList children = node.getNode().getChildNodes();
     for (int i = 0; i < children.getLength(); i++) {
+      // 标签
       XNode child = node.newXNode(children.item(i));
-      if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE || child.getNode().getNodeType() == Node.TEXT_NODE) {
+      /* 1、普通标签，直接提取里面的sql语句 */
+      if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE || child.getNode().getNodeType() == Node.TEXT_NODE/* 文本节点 */) {
+        /**
+         * 也就是获取标签内的sql语句，例如：
+         * <selectKey keyProperty="id" resultType="int" order="BEFORE">
+         *     select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
+         * </selectKey>
+         * 得到的就是：select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
+         */
+        // 获取标签内的文本体
         String data = child.getStringBody("");
         TextSqlNode textSqlNode = new TextSqlNode(data);
         if (textSqlNode.isDynamic()) {
@@ -88,17 +115,30 @@ public class XMLScriptBuilder extends BaseBuilder {
         } else {
           contents.add(new StaticTextSqlNode(data));
         }
-      } else if (child.getNode().getNodeType() == Node.ELEMENT_NODE) { // issue #628
+      }
+      /*
+
+      2、动态标签：获取动态标签对应的处理器；然后用动态标签处理器，处理动态标签，提取里面sql语句
+
+      注意：⚠️这里并没有拼接sql语句，因为调用者的传参还不确定，这里只是提取所有配置的sql语句信息！
+
+      */
+      else if (child.getNode().getNodeType() == Node.ELEMENT_NODE/* 元素节点 */) { // issue #628
+        // 获取标签的名称
         String nodeName = child.getNode().getNodeName();
+        // 从动态标签处理器当中，获取动态标签所对应的处理器
         NodeHandler handler = nodeHandlerMap.get(nodeName);
+        // 如果处理器为空，则代表当前动态标签名称配置错误，不能使用该标签！
         if (handler == null) {
+          // SQL 语句中的未知元素 <" + nodeName + ">。
           throw new BuilderException("Unknown element <" + nodeName + "> in SQL statement.");
         }
+        // 用动态标签处理器，处理器动态标签
         handler.handleNode(child, contents);
         isDynamic = true;
       }
     }
-    return new MixedSqlNode(contents);
+    return new MixedSqlNode/* 混合sql节点 */(contents);
   }
 
   private interface NodeHandler {
@@ -184,12 +224,29 @@ public class XMLScriptBuilder extends BaseBuilder {
 
   private class IfHandler implements NodeHandler {
     public IfHandler() {
-      // Prevent Synthetic Access
+      // Prevent Synthetic Access —— 防止合成访问
     }
 
+    /**
+     * 解析<if>标签
+     *
+     * 例如：
+     * <select id="getUser" resultType="com.msb.mybatis_02.bean.User" useCache="false" >
+     *   select *
+     *   from user
+     *   where id = 1
+     *   <if test="#{username}!=null">
+     *     and username = #{username}
+     *   </if>
+     * </select>
+     *
+     * @param nodeToHandle
+     * @param targetContents
+     */
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
-      MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
+      // ⚠️嵌套解析动态标签
+      MixedSqlNode mixedSqlNode/* 混合sql节点 */ = parseDynamicTags(nodeToHandle);
       String test = nodeToHandle.getStringAttribute("test");
       IfSqlNode ifSqlNode = new IfSqlNode(mixedSqlNode, test);
       targetContents.add(ifSqlNode);

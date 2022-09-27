@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.msb.other.discriminator.dao.UserDao">
+
+  <resultMap id="BaseResultMap" type="com.msb.other.discriminator.pojo.User">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="user_name" jdbcType="VARCHAR" property="userName" />
+    <result column="real_name" jdbcType="VARCHAR" property="realName" />
+    <result column="sex" jdbcType="CHAR" property="sex" />
+    <result column="mobile" jdbcType="VARCHAR" property="mobile" />
+    <result column="email" jdbcType="VARCHAR" property="email" />
+    <result column="note" jdbcType="VARCHAR" property="note" />
+    <result column="position_id" jdbcType="INTEGER" property="positionId" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, user_name, real_name, sex, mobile, email, note, position_id
+  </sql>
+
+  <resultMap id="UserAndHealthReportsResultMap" type="com.msb.other.discriminator.pojo.User" extends="BaseResultMap">
+    <!--  鉴别器使用  -->
+    <discriminator javaType="String" column="sex">
+      <!-- 男性 -->
+      <case value="1" resultMap="HealthReportMaleResultMap"/>
+      <!-- 女性 -->
+      <case value="0" resultMap="HealthReportFemale"/>
+    </discriminator>
+  </resultMap>
+
+  <!-- 男性 -->
+  <!-- 鉴别器分步查询1，当sex的值为1时使用 -->
+  <resultMap id="HealthReportMaleResultMap" type="com.msb.other.discriminator.pojo.User" autoMapping="true">
+    <constructor>
+      <arg column="id" javaType="int"/>
+      <arg column="user_name" javaType="string"/>
+    </constructor>
+<!--  <resultMap id="HealthReportMaleResultMap" type="com.msb.other.discriminator.pojo.User" extends="UserAndHealthReportsResultMap">-->
+    <collection property="healthReports" column="id" select="com.msb.other.discriminator.dao.HealthReportMaleDao.selectByUserId"/>
+  </resultMap>
+
+  <!-- 女性 -->
+  <!-- 鉴别器分步查询2，当sex的值为0时使用 -->
+  <resultMap id="HealthReportFemale" type="com.msb.other.discriminator.pojo.User">
+<!--  <resultMap id="HealthReportFemale" type="com.msb.other.discriminator.pojo.User" extends="UserAndHealthReportsResultMap">-->
+    <collection property="healthReports" column="id" select="com.msb.other.discriminator.dao.HealthReportFemaleDao.selectByUserId"/>
+  </resultMap>
+
+  <select id="selectUserAndHealthReportsById" parameterType="Integer" resultMap="UserAndHealthReportsResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from other_discriminator_user
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+</mapper>

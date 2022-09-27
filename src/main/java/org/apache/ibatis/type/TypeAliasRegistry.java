@@ -31,17 +31,29 @@ import java.util.Set;
 
 import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.Configuration;
 
 /**
+ * 类型别名注册器
+ *
  * @author Clinton Begin
  */
 public class TypeAliasRegistry {
 
+  /**
+   * 题外：在实例化{@link Configuration}的时候，会注册一批别名
+   */
+  // "类型别名"集合
+  // key：别名
+  // value：别名对应的Class
+  // 例如：JDBC = JdbcTransactionFactory
   private final Map<String, Class<?>> typeAliases = new HashMap<>();
 
   public TypeAliasRegistry() {
+    //构造函数里注册系统内置的类型别名
     registerAlias("string", String.class);
 
+    //基本包装类型
     registerAlias("byte", Byte.class);
     registerAlias("char", Character.class);
     registerAlias("character", Character.class);
@@ -53,6 +65,7 @@ public class TypeAliasRegistry {
     registerAlias("float", Float.class);
     registerAlias("boolean", Boolean.class);
 
+    //基本数组包装类型
     registerAlias("byte[]", Byte[].class);
     registerAlias("char[]", Character[].class);
     registerAlias("character[]", Character[].class);
@@ -64,6 +77,7 @@ public class TypeAliasRegistry {
     registerAlias("float[]", Float[].class);
     registerAlias("boolean[]", Boolean[].class);
 
+    //加个下划线，就变成了基本类型
     registerAlias("_byte", byte.class);
     registerAlias("_char", char.class);
     registerAlias("_character", char.class);
@@ -75,6 +89,7 @@ public class TypeAliasRegistry {
     registerAlias("_float", float.class);
     registerAlias("_boolean", boolean.class);
 
+    //加个下划线，就变成了基本数组类型
     registerAlias("_byte[]", byte[].class);
     registerAlias("_char[]", char[].class);
     registerAlias("_character[]", char[].class);
@@ -86,6 +101,7 @@ public class TypeAliasRegistry {
     registerAlias("_float[]", float[].class);
     registerAlias("_boolean[]", boolean[].class);
 
+    //日期数字型
     registerAlias("date", Date.class);
     registerAlias("decimal", BigDecimal.class);
     registerAlias("bigdecimal", BigDecimal.class);
@@ -98,6 +114,7 @@ public class TypeAliasRegistry {
     registerAlias("biginteger[]", BigInteger[].class);
     registerAlias("object[]", Object[].class);
 
+    //集合型
     registerAlias("map", Map.class);
     registerAlias("hashmap", HashMap.class);
     registerAlias("list", List.class);
@@ -105,22 +122,46 @@ public class TypeAliasRegistry {
     registerAlias("collection", Collection.class);
     registerAlias("iterator", Iterator.class);
 
+    //还有个ResultSet型
     registerAlias("ResultSet", ResultSet.class);
   }
 
+
+  /**
+   * 解析类型别名：
+   * （1）如果类型别名存在于类型别名当中，则通过类型别名，从类型别名集合当中，获取到对应的Class
+   * （2）如果不存在，则把别名作为"类的全限定名"，然后获取其对应的Class
+   *
+   * @param string    类型别名
+   * @param <T>
+   * @return
+   */
   @SuppressWarnings("unchecked")
-  // throws class cast exception as well if types cannot be assigned
+  // throws class cast exception as well if types cannot be assigned —— 如果无法分配类型，也会抛出类转换异常
   public <T> Class<T> resolveAlias(String string) {
     try {
+      /* 1、类型别名为null，则返回null */
       if (string == null) {
         return null;
       }
+
+      /* 2、将类型别名转换为小写 */
       // issue #748
+      // 先转成小写再解析
+      // 这里转个小写也有bug？见748号bug(在google code上)
+      // https://code.google.com/p/mybatis/issues
+      // 比如如果本地语言是Turkish，那i转成大写就不是I了，而是另外一个字符（İ）。这样土耳其的机器就用不了mybatis了！这是一个很大的bug，但是基本上每个人都会犯......
       String key = string.toLowerCase(Locale.ENGLISH);
+
+      /* 3、判断类型别名集合中，是否存在当前类型别名。存在，则从类型别名集合当中，获取到对应的类型Class */
       Class<T> value;
+      // 原理就很简单了，从HashMap里找对应的键值，找到则返回类型别名对应的Class
       if (typeAliases.containsKey(key)) {
         value = (Class<T>) typeAliases.get(key);
-      } else {
+      }
+      /* 4、不存在，就直接将别名作为"类的全限定名"，然后获取其对应的Class */
+      // 找不到，再试着将String直接转成Class(这样怪不得我们也可以直接用java.lang.Integer的方式定义，也可以就int这么定义)
+      else {
         value = (Class<T>) Resources.classForName(string);
       }
       return value;
@@ -133,6 +174,7 @@ public class TypeAliasRegistry {
     registerAliases(packageName, Object.class);
   }
 
+  //扫描并注册包下所有继承于superType的类型别名
   public void registerAliases(String packageName, Class<?> superType) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
@@ -146,8 +188,11 @@ public class TypeAliasRegistry {
     }
   }
 
+  //注册类型别名
   public void registerAlias(Class<?> type) {
+    //如果没有类型别名，用Class.getSimpleName来注册
     String alias = type.getSimpleName();
+    //或者通过Alias注解来注册(Class.getAnnotation)
     Alias aliasAnnotation = type.getAnnotation(Alias.class);
     if (aliasAnnotation != null) {
       alias = aliasAnnotation.value();
@@ -155,15 +200,26 @@ public class TypeAliasRegistry {
     registerAlias(alias, type);
   }
 
+  /**
+   * 注册类型别名和对应的Class
+   *
+   * @param alias 别名
+   * @param value 别名对应的Class
+   */
   public void registerAlias(String alias, Class<?> value) {
     if (alias == null) {
       throw new TypeException("The parameter alias cannot be null");
     }
+    /* 1、将别名中的英文变为小写 */
     // issue #748
     String key = alias.toLowerCase(Locale.ENGLISH);
+
+    /* 2、如果已经存在该别名，但是存在的"别名类型"和目前的"别名类型"不一致，则报错 */
     if (typeAliases.containsKey(key) && typeAliases.get(key) != null && !typeAliases.get(key).equals(value)) {
       throw new TypeException("The alias '" + alias + "' is already mapped to the value '" + typeAliases.get(key).getName() + "'.");
     }
+
+    /* 3、存放别名和对应的类型，到"类型别名"集合当中 */
     typeAliases.put(key, value);
   }
 

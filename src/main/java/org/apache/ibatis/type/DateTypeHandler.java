@@ -46,7 +46,9 @@ public class DateTypeHandler extends BaseTypeHandler<Date> {
   @Override
   public Date getNullableResult(ResultSet rs, int columnIndex)
       throws SQLException {
+    // jdbc类型
     Timestamp sqlTimestamp = rs.getTimestamp(columnIndex);
+    // jdbc类型转换为java类型
     if (sqlTimestamp != null) {
       return new Date(sqlTimestamp.getTime());
     }
@@ -62,4 +64,5 @@ public class DateTypeHandler extends BaseTypeHandler<Date> {
     }
     return null;
   }
+
 }

@@ -28,20 +28,30 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
+ * 执行器，负责执行底层映射语句
+ *
+ *
+ *
+ *
  * @author Clinton Begin
  */
 public interface Executor {
 
+  // 没有(不需要)resultHandler
   ResultHandler NO_RESULT_HANDLER = null;
 
+  // 执行insert、 delete、 update三种类型的SQL语句
   int update(MappedStatement ms, Object parameter) throws SQLException;
 
+  // 执行select类型的SQL语句，返回值分为结果对象列表或游标对象
   <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey cacheKey, BoundSql boundSql) throws SQLException;
 
+  // 查询，带分页
   <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException;
 
   <E> Cursor<E> queryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds) throws SQLException;
 
+  // 批量执行SQL语句
   List<BatchResult> flushStatements() throws SQLException;
 
   void commit(boolean required) throws SQLException;

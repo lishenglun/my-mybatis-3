@@ -21,7 +21,10 @@ import java.util.List;
  * @author Clinton Begin
  */
 public class ChooseSqlNode implements SqlNode {
+
   private final SqlNode defaultSqlNode;
+
+  // 题外：⚠️有子标签的SqlNode实现类都有一个这个"SqlNode集合"，是一个组合模式
   private final List<SqlNode> ifSqlNodes;
 
   public ChooseSqlNode(List<SqlNode> ifSqlNodes, SqlNode defaultSqlNode) {
@@ -42,4 +45,5 @@ public class ChooseSqlNode implements SqlNode {
     }
     return false;
   }
+
 }

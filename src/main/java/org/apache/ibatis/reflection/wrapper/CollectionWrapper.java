@@ -23,15 +23,22 @@ import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
 /**
+ * Collection包装器。
+ *
+ * 包含了对于集合对象的处理实现，许多方法都是不支持的，会抛出 UnsupportedOperationException 异常
+ *
  * @author Clinton Begin
  */
 public class CollectionWrapper implements ObjectWrapper {
 
+  // 原来的对象
   private final Collection<Object> object;
 
   public CollectionWrapper(MetaObject metaObject, Collection<Object> object) {
     this.object = object;
   }
+
+  /* get()、set()都是不允许的,只能添加元素 */
 
   @Override
   public Object get(PropertyTokenizer prop) {

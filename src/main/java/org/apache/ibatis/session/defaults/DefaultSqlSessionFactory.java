@@ -22,6 +22,7 @@ import org.apache.ibatis.exceptions.ExceptionFactory;
 import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.Environment;
+import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
@@ -42,9 +43,14 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     this.configuration = configuration;
   }
 
+  /**
+   * 创建SqlSession对象(DefaultSqlSession)
+   *
+   * SqlSession（configuration、executor（Configuration、transaction（数据源、隔离级别、是否自动提交））、autoCommit）
+   */
   @Override
   public SqlSession openSession() {
-    return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, false);
+    return openSessionFromDataSource(configuration.getDefaultExecutorType()/* 获取默认的执行器 */, null, false);
   }
 
   @Override
@@ -87,13 +93,57 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return configuration;
   }
 
-  private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
+  /**
+   * 创建SqlSession对象(DefaultSqlSession)
+   *
+   * SqlSession（configuration、executor（Configuration、transaction（数据源、隔离级别、是否自动提交））、autoCommit）
+   *
+   * @param execType
+   * @param level
+   * @param autoCommit
+   * @return
+   */
+  private SqlSession openSessionFromDataSource/* 从数据源打开会话 */(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
     Transaction tx = null;
     try {
+      /* 1、创建事务对象transaction（里面包含：数据源、隔离级别、是否自动提交） */
+      /**
+       * 1、要想知道具体的Environment是怎样的，入口是看哪里构建的SqlSessionFactory
+       *
+       * 因为Environment属于Configuration，而只有在构建SqlSessionFactory的时候，会构建一个Configuration，因为SqlSessionFactory对象里面需要一个Configuration。
+       * 所以要想知道具体的Environment是怎样的，入口是看哪里构建的SqlSessionFactory
+       *
+       *（1）如果是单独的mybatis，我们配置为<transactionManager type="JDBC">，那么Environment中：
+       * id = development
+       * transactionFactory = JdbcTransactionFactory
+       *
+       * 参考：{@link org.apache.ibatis.builder.xml.XMLConfigBuilder#environmentsElement(XNode)}
+       *
+       *（2）如果是整合了Spring，那么Environment中：
+       * id = SqlSessionFactoryBean
+       * transactionFactory = SpringManagedTransactionFactory（mybatis-spring中的类）
+       *
+       * 参考：{@link org.mybatis.spring.SqlSessionFactoryBean#afterPropertiesSet()}
+       */
+      // （1）获取数据库环境对象
       final Environment environment = configuration.getEnvironment();
+      // （2）从数据库环境对象里面获取事务工厂对象（也叫，事务管理器）
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
-      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+      // （3）通过事务工厂创建一个事务对象
+      tx = transactionFactory.newTransaction(environment.getDataSource()/* 数据源 */, level/* 隔离级别 */, autoCommit/* 是否自动提交 */);
+
+      /*
+
+      2、根据执行器类型(executorType)，创建当前会话，对应类型的执行器（Executor：里面包含Configuration、transaction、一级缓存）
+
+      题外：里面最重要的是会创建一级缓存！
+
+      */
+      // 根据执行器类型，创建对应类型的执行器
       final Executor executor = configuration.newExecutor(tx, execType);
+
+      /* 3、创建SqlSession对象，里面包含configuration、executor、autoCommit */
+      // SqlSession（configuration、executor（Configuration、transaction（数据源、隔离级别、是否自动提交））、autoCommit）
       return new DefaultSqlSession(configuration, executor, autoCommit);
     } catch (Exception e) {
       closeTransaction(tx); // may have fetched a connection so lets call close()
@@ -125,6 +175,11 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     }
   }
 
+  /**
+   * 从数据库环境对象里面获取事务工厂对象
+   *
+   * @param environment 数据库环境对象
+   */
   private TransactionFactory getTransactionFactoryFromEnvironment(Environment environment) {
     if (environment == null || environment.getTransactionFactory() == null) {
       return new ManagedTransactionFactory();

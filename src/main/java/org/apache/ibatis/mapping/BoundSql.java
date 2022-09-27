@@ -24,6 +24,8 @@ import org.apache.ibatis.reflection.property.PropertyTokenizer;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * 具备jdbc可执行sql，和sql参数映射
+ *
  * An actual SQL String got from an {@link SqlSource} after having processed any dynamic content.
  * The SQL may have SQL placeholders "?" and a list (ordered) of a parameter mappings
  * with the additional information for each parameter (at least the property name of the input object to read
@@ -35,17 +37,26 @@ import org.apache.ibatis.session.Configuration;
  */
 public class BoundSql {
 
+  // jdbc可执行的sql语句，该SQL语句中可能含有？占位符
   private final String sql;
+  // SQL中的参数属性集合
+  // sql参数映射（ParameterMapping，面保存了sql参数名和参数类型）
   private final List<ParameterMapping> parameterMappings;
+  // 客户端执行SQL时传入的实际参数
+  // sql参数对象 —— "参数名"与"实参(入参对象)"之间的对应关系，方便后面填入sql语句中
   private final Object parameterObject;
+  // 空的HashMap集合，之后会复制DynamicContext.bindings集合中的内容
   private final Map<String, Object> additionalParameters;
+  // additionalParameters集合对应的Metaobject对象
   private final MetaObject metaParameters;
 
   public BoundSql(Configuration configuration, String sql, List<ParameterMapping> parameterMappings, Object parameterObject) {
     this.sql = sql;
     this.parameterMappings = parameterMappings;
+    // null
     this.parameterObject = parameterObject;
     this.additionalParameters = new HashMap<>();
+    // null
     this.metaParameters = configuration.newMetaObject(additionalParameters);
   }
 

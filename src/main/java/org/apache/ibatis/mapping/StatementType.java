@@ -16,8 +16,28 @@
 package org.apache.ibatis.mapping;
 
 /**
+ * 执行sql语句的对象类型
+ *
  * @author Clinton Begin
  */
 public enum StatementType {
-  STATEMENT, PREPARED, CALLABLE
+
+  /**
+   * 1、PreparedStatement和Statement的区别：
+   * PreparedStatement是预处理，用来避免sql注入问题
+   *
+   * 2、默认情况下，为了避免sql注入，选择的是PREPARED
+   */
+
+  // 原生的sql语句/普通的sql语句
+  // 代表：执行sql语句的时候，选择Statement对象执行sql语句
+  STATEMENT,/* 声明 */
+
+  // 预处理sql语句
+  // 代表：执行sql语句的时候，选择PreparedStatement对象
+  PREPARED/* 准备好的 */,
+
+  // 存储过程（生产环境几乎不用）
+  CALLABLE/* 可调用 */
+
 }

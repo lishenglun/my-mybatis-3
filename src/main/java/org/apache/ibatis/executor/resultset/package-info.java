@@ -17,3 +17,10 @@
  * Contains the result processing logic.
  */
 package org.apache.ibatis.executor.resultset;
+
+
+/**
+ *
+ * 解析结果集的
+ *
+ */

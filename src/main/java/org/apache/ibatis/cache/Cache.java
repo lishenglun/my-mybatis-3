@@ -18,6 +18,13 @@ package org.apache.ibatis.cache;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
+ * 缓存接口：不管你是哪个缓存，在进行实现的时候，里面都需要实现Cache接口
+ *
+ * 题外：在缓存这块，mybatis用的是装饰者模式，看【decorators】包名称就知道了。
+ *
+ * 装饰者模式：在不改变原有对象的基础之上，将一些功能附加到对象里面，而且提供对应的一些扩展功能
+ *
+ * <p>
  * SPI for cache providers.
  * <p>
  * One instance of cache will be created for each namespace.
@@ -39,29 +46,34 @@ import java.util.concurrent.locks.ReadWriteLock;
  * @author Clinton Begin
  */
 
-public interface Cache {
+public interface  Cache {
 
   /**
+   * 该缓存对象的id
+   *
    * @return The identifier of this cache
    */
   String getId();
 
   /**
-   * @param key
-   *          Can be any object but usually it is a {@link CacheKey}
-   * @param value
-   *          The result of a select.
+   * 向缓存中添加数据，Key是CacheKey，value 是查询结果
+   *
+   * @param key   Can be any object but usually it is a {@link CacheKey} —— 可以是任何对象，但通常是 {@link CacheKey}
+   * @param value The result of a select.
    */
   void putObject(Object key, Object value);
 
   /**
-   * @param key
-   *          The key
+   * 从缓存中获取数据
+   *
+   * @param key The key
    * @return The object stored in the cache.
    */
   Object getObject(Object key);
 
   /**
+   * 从缓存中删除数据
+   * <p>
    * As of 3.3.0 this method is only called during a rollback
    * for any previous value that was missing in the cache.
    * This lets any blocking cache to release the lock that
@@ -71,19 +83,21 @@ public interface Cache {
    * This way other threads will wait for the value to be
    * available instead of hitting the database.
    *
-   *
-   * @param key
-   *          The key
+   * @param key The key
    * @return Not used
    */
   Object removeObject(Object key);
 
   /**
+   * 清空缓存
+   * <p>
    * Clears this cache instance.
    */
   void clear();
 
   /**
+   * 获取缓存项的个数
+   * <p>
    * Optional. This method is not called by the core.
    *
    * @return The number of elements stored in the cache (not its capacity).
@@ -91,12 +105,15 @@ public interface Cache {
   int getSize();
 
   /**
+   * 获取读写锁
+   * <p>
    * Optional. As of 3.2.6 this method is no longer called by the core.
    * <p>
    * Any locking needed by the cache must be provided internally by the cache provider.
    *
    * @return A ReadWriteLock
    */
+  // 获取读写锁, 从3.2.6开始没用了，要SPI自己实现锁
   default ReadWriteLock getReadWriteLock() {
     return null;
   }

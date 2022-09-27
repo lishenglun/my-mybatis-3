@@ -23,8 +23,28 @@ import org.apache.ibatis.transaction.TransactionFactory;
  * @author Clinton Begin
  */
 public final class Environment {
+
+
+  /**
+   * 例如：id = development
+   *
+   * <environments default="development">
+   *     <environment id="development">
+   *       <transactionManager type="JDBC"/>
+   *       <dataSource type="POOLED">
+   *         <property name="driver" value="${jdbc.driver}"/>
+   *         <property name="url" value="${jdbc.url}"/>
+   *         <property name="username" value="${jdbc.username}"/>
+   *         <property name="password" value="${jdbc.password}"/>
+   *       </dataSource>
+   *     </environment>
+   * </environments>
+   */
+  // 数据库环境id
   private final String id;
+  // 事务工厂（事务管理器）
   private final TransactionFactory transactionFactory;
+  // 数据源
   private final DataSource dataSource;
 
   public Environment(String id, TransactionFactory transactionFactory, DataSource dataSource) {
@@ -43,8 +63,15 @@ public final class Environment {
   }
 
   public static class Builder {
+
+    // 环境id
+    // 题外：在单独使用mybatis的时候，由于只加载开发环境的数据库信息，所以id一定等于development
     private final String id;
+
+    // 事务工厂（事务管理器）
     private TransactionFactory transactionFactory;
+
+    // 数据源
     private DataSource dataSource;
 
     public Builder(String id) {

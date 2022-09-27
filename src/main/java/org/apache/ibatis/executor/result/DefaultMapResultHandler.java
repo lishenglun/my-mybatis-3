@@ -25,10 +25,15 @@ import org.apache.ibatis.session.ResultContext;
 import org.apache.ibatis.session.ResultHandler;
 
 /**
+ * 默认Map结果处理器：主要是@MapKey的实现。
+ *
+ * 题外：@MapKey作用：就是将mapper的返回值转换成Map类型。@MapKey 就是指定返回map的key。
+ *
  * @author Clinton Begin
  */
 public class DefaultMapResultHandler<K, V> implements ResultHandler<V> {
 
+  //内部实现是存了一个Map
   private final Map<K, V> mappedResults;
   private final String mapKey;
   private final ObjectFactory objectFactory;
@@ -46,11 +51,19 @@ public class DefaultMapResultHandler<K, V> implements ResultHandler<V> {
 
   @Override
   public void handleResult(ResultContext<? extends V> context) {
+    //得到一条记录
+    //这边黄色警告没法去掉了？因为返回Object型
     final V value = context.getResultObject();
+    // 创建MetaObject实例
+    //MetaObject.forObject,包装一下记录
+    //MetaObject是用反射来包装各种类型
     final MetaObject mo = MetaObject.forObject(value, objectFactory, objectWrapperFactory, reflectorFactory);
+    // 取出key值
     // TODO is that assignment always true?
     final K key = (K) mo.getValue(mapKey);
+    // 构造map值
     mappedResults.put(key, value);
+    //这个类主要目的是把得到的List转为Map
   }
 
   public Map<K, V> getMappedResults() {

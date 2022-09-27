@@ -16,9 +16,20 @@
 package org.apache.ibatis.scripting.xmltags;
 
 /**
+ * 静态文本Sql节点
+ *
  * @author Clinton Begin
  */
 public class StaticTextSqlNode implements SqlNode {
+
+  /**
+   * 标签内的sql语句，例如：
+   * <selectKey keyProperty="id" resultType="int" order="BEFORE">
+   *     select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
+   * </selectKey>
+   *
+   * 得到的就是：select CAST(RANDOM()*1000000 as INTEGER) a from SYSIBM.SYSDUMMY1
+   */
   private final String text;
 
   public StaticTextSqlNode(String text) {
@@ -27,6 +38,7 @@ public class StaticTextSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    // 将文本加入context
     context.appendSql(text);
     return true;
   }

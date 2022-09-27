@@ -38,12 +38,18 @@ import org.apache.ibatis.reflection.SystemMetaObject;
  * @author Clinton Begin
  */
 public class CacheBuilder {
+
+  // 命名空间（也就是mapper接口的全限定名）
   private final String id;
+  // 缓存的类型
+  // 例如：<cache type="">，如果没有配置，则默认为PerpetualCache
   private Class<? extends Cache> implementation;
   private final List<Class<? extends Cache>> decorators;
   private Integer size;
   private Long clearInterval;
   private boolean readWrite;
+  // 缓存属性
+  // 例如：<cache>下的子标签<property>形成的Properties
   private Properties properties;
   private boolean blocking;
 
@@ -52,6 +58,11 @@ public class CacheBuilder {
     this.decorators = new ArrayList<>();
   }
 
+  /**
+   * 设置缓存的类型
+   * @param implementation  缓存的类型
+   * @return
+   */
   public CacheBuilder implementation(Class<? extends Cache> implementation) {
     this.implementation = implementation;
     return this;
@@ -90,25 +101,53 @@ public class CacheBuilder {
   }
 
   public Cache build() {
-    setDefaultImplementations();
-    Cache cache = newBaseCacheInstance(implementation, id);
-    setCacheProperties(cache);
-    // issue #352, do not apply decorators to custom caches
+    /*
+
+    1、设置默认实现，确保后续可以创建缓存实例（Cache）
+    （1）如果不存在缓存类型，就设置默认的缓存类型为PerpetualCache
+    （2）如果缓存的装饰者集合为空，则添加默认的缓存装饰者：LruCache
+
+     */
+    setDefaultImplementations/* 设置默认实现 */();
+
+    /* 2、创建一个新的Cache */
+    Cache cache = newBaseCacheInstance(implementation/* 缓存类型 */, id/* 缓存id = 命名空间 */);
+
+    /*
+
+    3、往Cache里面设置属性（将properties里面的数据设置到Cache）
+
+    题外：例如：<cache>下的子标签<property>形成的Properties
+
+    */
+    setCacheProperties/* 设置缓存属性 */(cache);
+
+    // issue #352, do not apply decorators to custom caches —— 问题352，不要将装饰器应用于自定义缓存
     if (PerpetualCache.class.equals(cache.getClass())) {
+
       for (Class<? extends Cache> decorator : decorators) {
         cache = newCacheDecoratorInstance(decorator, cache);
         setCacheProperties(cache);
       }
       cache = setStandardDecorators(cache);
-    } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
+    }
+
+    else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
       cache = new LoggingCache(cache);
     }
     return cache;
   }
 
+  /**
+   * （1）如果不存在缓存类型，就设置默认的缓存类型为PerpetualCache
+   * （2）如果缓存的装饰者集合为空，则添加默认的缓存装饰者：LruCache
+   */
   private void setDefaultImplementations() {
     if (implementation == null) {
+      /* 1、如果缓存类型为空，则设置默认的缓存类型为PerpetualCache */
       implementation = PerpetualCache.class;
+
+      /* 2、如果缓存的装饰者集合为空，则添加默认的缓存装饰者：LruCache */
       if (decorators.isEmpty()) {
         decorators.add(LruCache.class);
       }
@@ -186,15 +225,30 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 创建一个新的Cache
+   *
+   * @param cacheClass    缓存的类型
+   * @param id            缓存id，也就是命名空间
+   * @return
+   */
   private Cache newBaseCacheInstance(Class<? extends Cache> cacheClass, String id) {
-    Constructor<? extends Cache> cacheConstructor = getBaseCacheConstructor(cacheClass);
+    /* 1、获取缓存的构造器 */
+    Constructor<? extends Cache> cacheConstructor = getBaseCacheConstructor/* 获取基本缓存构造函数 */(cacheClass);
     try {
+      /* 2、通过缓存构造器，创建缓存实例（Cache） */
       return cacheConstructor.newInstance(id);
     } catch (Exception e) {
       throw new CacheException("Could not instantiate cache implementation (" + cacheClass + "). Cause: " + e, e);
     }
   }
 
+  /**
+   * 获取缓存的构造器(构造函数为String)
+   *
+   * @param cacheClass    缓存类型
+   * @return
+   */
   private Constructor<? extends Cache> getBaseCacheConstructor(Class<? extends Cache> cacheClass) {
     try {
       return cacheClass.getConstructor(String.class);
@@ -213,6 +267,12 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 获取缓存的构造器(构造函数为Cache)
+   *
+   * @param cacheClass
+   * @return
+   */
   private Constructor<? extends Cache> getCacheDecoratorConstructor(Class<? extends Cache> cacheClass) {
     try {
       return cacheClass.getConstructor(Cache.class);

@@ -17,3 +17,16 @@
  * Statement handlers.
  */
 package org.apache.ibatis.executor.statement;
+
+
+/**
+ *
+ * sql语句
+ *
+ *
+ *
+ * 里面对于的都是handler，为什么要handler？虽然有对应的执行器了，但是执行器在调用具体执行的时候，说白了，还是在不同阶段的时候，通过不同的处理类，来执行我们具体的核心逻辑
+ *
+ *
+ *
+ */

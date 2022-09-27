@@ -20,7 +20,11 @@ import java.lang.reflect.Method;
 
 import org.apache.ibatis.reflection.ReflectionException;
 
+/**
+ * 匿名的方法执行器（也就是说，有一些匿名内部类，或者没有名字的方法，我也可以调用执行）
+ */
 public class AmbiguousMethodInvoker extends MethodInvoker {
+
   private final String exceptionMessage;
 
   public AmbiguousMethodInvoker(Method method, String exceptionMessage) {
@@ -32,4 +36,5 @@ public class AmbiguousMethodInvoker extends MethodInvoker {
   public Object invoke(Object target, Object[] args) throws IllegalAccessException, InvocationTargetException {
     throw new ReflectionException(exceptionMessage);
   }
+
 }

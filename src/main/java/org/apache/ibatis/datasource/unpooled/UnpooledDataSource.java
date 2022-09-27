@@ -33,25 +33,41 @@ import javax.sql.DataSource;
 import org.apache.ibatis.io.Resources;
 
 /**
+ * 没有池化的数据源
+ *
+ * 1、UnpooledDataSource和PooledDataSource的区别：
+ * UnpooledDataSource每次都是从数据获取新(打开、创建)的连接，不会复用连接；
+ * 而PooledDataSource则是从池子中获取之前已经从数据库获取好的连接，会复用连接；
+ *
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
 public class UnpooledDataSource implements DataSource {
 
+  //加载Driver类的加载器
   private ClassLoader driverClassLoader;
+  //数据库连接驱动的相关配置
   private Properties driverProperties;
+  // 缓存所有己注册的数据库连接驱动
   private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<>();
 
+  //数据库连接的驱动名称
   private String driver;
+  //数据库url
   private String url;
+  // 用户名
   private String username;
+  // 密码
   private String password;
 
+  // 是否自动提交
   private Boolean autoCommit;
+  //事务隔离级别
   private Integer defaultTransactionIsolationLevel;
   private Integer defaultNetworkTimeout;
 
   static {
+    //获取驱动
     Enumeration<Driver> drivers = DriverManager.getDrivers();
     while (drivers.hasMoreElements()) {
       Driver driver = drivers.nextElement();

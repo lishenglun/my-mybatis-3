@@ -23,8 +23,11 @@ import java.lang.reflect.Method;
  */
 public class Invocation {
 
+  // 目标对象
   private final Object target;
+  // 目标方法
   private final Method method;
+  // 方法参数
   private final Object[] args;
 
   public Invocation(Object target, Method method, Object[] args) {

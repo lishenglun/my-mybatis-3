@@ -18,12 +18,20 @@ package org.apache.ibatis.executor.result;
 import org.apache.ibatis.session.ResultContext;
 
 /**
+ * 默认结果上下文
+ *
  * @author Clinton Begin
  */
 public class DefaultResultContext<T> implements ResultContext<T> {
 
+  // 当前行的结果对象
+  // 题外：从下一行的处理逻辑来看，当前resultObject就是上一行的结果对象
   private T resultObject;
+  // 累计处理的行数据量
   private int resultCount;
+  // 是否停止处理结果映射？
+  // true：停止处理
+  // false：不停止处理（恒定返回false）
   private boolean stopped;
 
   public DefaultResultContext() {
@@ -48,7 +56,9 @@ public class DefaultResultContext<T> implements ResultContext<T> {
   }
 
   public void nextResultObject(T resultObject) {
+    // （1）递增处理的行数据量(DefaultResultContext.resultCount)，该值用于检测处理的记录行数是否己经达到上下（在RowBounds。limit字段中记录了该上限）；
     resultCount++;
+    // （2）保存将当前行的结果对象(DefaultResultContext.resultObject)
     this.resultObject = resultObject;
   }
 

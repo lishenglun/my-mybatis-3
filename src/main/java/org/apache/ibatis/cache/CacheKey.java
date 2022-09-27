@@ -23,6 +23,8 @@ import java.util.StringJoiner;
 import org.apache.ibatis.reflection.ArrayUtil;
 
 /**
+ * 注意：一级缓存和二级缓存用的是同一个CacheKey
+ *
  * @author Clinton Begin
  */
 public class CacheKey implements Cloneable, Serializable {

@@ -16,14 +16,19 @@
 package org.apache.ibatis.executor;
 
 /**
+ * 错误上下文
+ *
  * @author Clinton Begin
  */
 public class ErrorContext {
 
+  // 获得 \n 不同的操作系统不一样
   private static final String LINE_SEPARATOR = System.lineSeparator();
+  // 每个线程给开一个错误上下文，防止多线程问题
   private static final ThreadLocal<ErrorContext> LOCAL = ThreadLocal.withInitial(ErrorContext::new);
 
   private ErrorContext stored;
+  // 例如：com/msb/mybatis_02/dao/UserDao.java (best guess)
   private String resource;
   private String activity;
   private String object;
@@ -31,10 +36,13 @@ public class ErrorContext {
   private String sql;
   private Throwable cause;
 
+  // 单例模式
   private ErrorContext() {
   }
 
+  // 工厂方法，得到一个实例
   public static ErrorContext instance() {
+    // 因为是多线程，所以用了ThreadLocal 线程安全
     return LOCAL.get();
   }
 
@@ -45,6 +53,7 @@ public class ErrorContext {
     return LOCAL.get();
   }
 
+  // 应该是和store相对应的方法，store是存储起来，recall是召回
   public ErrorContext recall() {
     if (stored != null) {
       LOCAL.set(stored);
@@ -53,6 +62,7 @@ public class ErrorContext {
     return LOCAL.get();
   }
 
+  // 以下都是建造者模式
   public ErrorContext resource(String resource) {
     this.resource = resource;
     return this;
@@ -83,6 +93,7 @@ public class ErrorContext {
     return this;
   }
 
+  // 全部清空重置
   public ErrorContext reset() {
     resource = null;
     activity = null;
@@ -94,6 +105,7 @@ public class ErrorContext {
     return this;
   }
 
+  // 打印信息供人阅读
   @Override
   public String toString() {
     StringBuilder description = new StringBuilder();

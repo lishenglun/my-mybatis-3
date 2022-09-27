@@ -47,6 +47,7 @@ public class XMLIncludeTransformer {
     Properties variablesContext = new Properties();
     Properties configurationVariables = configuration.getVariables();
     Optional.ofNullable(configurationVariables).ifPresent(variablesContext::putAll);
+    // ⚠️
     applyIncludes(source, variablesContext, false);
   }
 
@@ -60,18 +61,22 @@ public class XMLIncludeTransformer {
    */
   private void applyIncludes(Node source, final Properties variablesContext, boolean included) {
     if ("include".equals(source.getNodeName())) {
+      // 根据引用的代码片段id，去sql片段集合中，查询对应的sql
       Node toInclude = findSqlFragment(getStringAttribute(source, "refid"), variablesContext);
       Properties toIncludeContext = getVariablesContext(source, variablesContext);
+
+      // 看一下sql代码片段里面，是否还引入了其它的sql片段，所以递归
       applyIncludes(toInclude, toIncludeContext, true);
-      if (toInclude.getOwnerDocument() != source.getOwnerDocument()) {
+      if (toInclude.getOwnerDocument()/* 获取所有者文件 */ != source.getOwnerDocument()) {
         toInclude = source.getOwnerDocument().importNode(toInclude, true);
       }
+
       source.getParentNode().replaceChild(toInclude, source);
       while (toInclude.hasChildNodes()) {
         toInclude.getParentNode().insertBefore(toInclude.getFirstChild(), toInclude);
       }
       toInclude.getParentNode().removeChild(toInclude);
-    } else if (source.getNodeType() == Node.ELEMENT_NODE) {
+    } else if (source.getNodeType() == Node.ELEMENT_NODE/* 元素节点 */) {
       if (included && !variablesContext.isEmpty()) {
         // replace variables in attribute values
         NamedNodeMap attributes = source.getAttributes();

@@ -21,14 +21,26 @@ import java.util.LinkedList;
 import org.apache.ibatis.cache.Cache;
 
 /**
+ * FIFO缓存（先进先出）
+ * 这个类就是维护一个FIFO链表，其他都委托给所包装的cache去做。典型的装饰模式
+ *
+ *
+ * 题外：FifoCache和LruCache的区别：LruCache用的是Map，FifoCache用的是Deque队列
+ *
+ * <p>
  * FIFO (first in, first out) cache decorator.
  *
  * @author Clinton Begin
  */
 public class FifoCache implements Cache {
 
+  // 底层被装饰的底层Cache对象
   private final Cache delegate;
+
+  // 用于记录key进入缓存的先后顺序
   private final Deque<Object> keyList;
+
+  // 记录了缓存项的上限，超过该值，则需要清理最老的缓存项
   private int size;
 
   public FifoCache(Cache delegate) {
